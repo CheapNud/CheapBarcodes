@@ -79,9 +79,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.81" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="9.0.81" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.6" />
+    <PackageReference Include="MudBlazor" Version="8.9.0" />
     <PackageReference Include="MvvmCross.Plugin.Messenger" Version="9.3.1" />
   </ItemGroup>
 
@@ -91,6 +92,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CheapBarcodes.Binding\CheapBarcodes.Binding.csproj" />
+    <ProjectReference Include="..\CheapHelpers\CheapHelpers.Services\CheapHelpers.Services.csproj" />
   </ItemGroup>
 
 </Project>

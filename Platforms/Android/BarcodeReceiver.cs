@@ -1,7 +1,8 @@
 ﻿using Android.Content;
 using Android.OS;
+using CheapBarcodes.Helpers;
 
-namespace CheapBarcodes.Helpers
+namespace CheapBarcodes.Platforms.Android
 {
     public class BarcodeReceiver : BroadcastReceiver
     {

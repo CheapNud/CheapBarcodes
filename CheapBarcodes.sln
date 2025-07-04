@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheapBarcodes", "CheapBarco
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheapBarcodes.Binding", "..\CheapBarcodes.Binding\CheapBarcodes.Binding.csproj", "{43DAD047-1F6A-4B88-BAFB-24EB10FA72A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheapHelpers.Services", "..\CheapHelpers\CheapHelpers.Services\CheapHelpers.Services.csproj", "{AC41BBF2-5A71-A2AD-D6B1-E4ACC4E290F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,6 +24,10 @@ Global
 		{43DAD047-1F6A-4B88-BAFB-24EB10FA72A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43DAD047-1F6A-4B88-BAFB-24EB10FA72A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43DAD047-1F6A-4B88-BAFB-24EB10FA72A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC41BBF2-5A71-A2AD-D6B1-E4ACC4E290F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC41BBF2-5A71-A2AD-D6B1-E4ACC4E290F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC41BBF2-5A71-A2AD-D6B1-E4ACC4E290F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC41BBF2-5A71-A2AD-D6B1-E4ACC4E290F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
