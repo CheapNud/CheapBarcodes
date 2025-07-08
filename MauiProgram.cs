@@ -1,5 +1,7 @@
 ﻿using CheapHelpers.Services;
 using Microsoft.Extensions.Logging;
+using MudBlazor;
+using MudBlazor.Services;
 
 namespace CheapBarcodes
 {
@@ -15,6 +17,7 @@ namespace CheapBarcodes
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
+            // Add HTTP client
             builder.Services.AddSingleton<HttpClient>(serviceProvider =>
             {
                 var httpClient = new HttpClient
@@ -25,14 +28,28 @@ namespace CheapBarcodes
                 return httpClient;
             });
 
+            // Add MAUI Blazor WebView
             builder.Services.AddMauiBlazorWebView();
 
-            //add service dependencies
+            // Add MudBlazor services
+            builder.Services.AddMudServices(config =>
+            {
+                config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
+                config.SnackbarConfiguration.PreventDuplicates = false;
+                config.SnackbarConfiguration.NewestOnTop = false;
+                config.SnackbarConfiguration.ShowCloseIcon = true;
+                config.SnackbarConfiguration.VisibleStateDuration = 3000;
+                config.SnackbarConfiguration.HideTransitionDuration = 250;
+                config.SnackbarConfiguration.ShowTransitionDuration = 250;
+                config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+            });
+
+            // Add barcode service dependencies
             builder.Services.AddSingleton<IBarcodeService, BarcodeService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();

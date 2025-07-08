@@ -1,0 +1,448 @@
+﻿@page "/scanner"
+@using CheapHelpers.Services
+@using CheapBarcodes.Services
+@inject IBarcodeService BarcodeService
+@inject IHardwareScannerService HardwareScannerService
+@implements IDisposable
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
+    <MudGrid>
+        <!-- Hardware Scanner Card -->
+        <MudItem xs="12" md="6">
+            <MudCard Class="pa-4" Style="height: 100%">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">
+                            <MudIcon Icon="Icons.Material.Filled.Scanner" Class="mr-2" />
+                            Hardware Scanner
+                        </MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    <MudStack>
+                        <MudChip T="string"
+                                 Color="@(HardwareScannerService.IsScanning ? Color.Success : Color.Error)"
+                                 Icon="@(HardwareScannerService.IsScanning ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)">
+                            @(HardwareScannerService.IsScanning ? "Active" : "Inactive")
+                        </MudChip>
+
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Use the hardware scan button (F1-F5) to scan barcodes with the built-in scanner.
+                        </MudText>
+
+                        <MudStack Row="true" Spacing="2">
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       OnClick="StartHardwareScanning"
+                                       Disabled="HardwareScannerService.IsScanning"
+                                       StartIcon="Icons.Material.Filled.PlayArrow">
+                                Start
+                            </MudButton>
+
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Secondary"
+                                       OnClick="StopHardwareScanning"
+                                       Disabled="!HardwareScannerService.IsScanning"
+                                       StartIcon="Icons.Material.Filled.Stop">
+                                Stop
+                            </MudButton>
+                        </MudStack>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Image Scanner Card -->
+        <MudItem xs="12" md="6">
+            <MudCard Class="pa-4" Style="height: 100%">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">
+                            <MudIcon Icon="Icons.Material.Filled.PhotoCamera" Class="mr-2" />
+                            Image Scanner
+                        </MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    <MudStack>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Upload an image file to scan for barcodes.
+                        </MudText>
+
+                        <MudFileUpload T="IBrowserFile"
+                                       Accept=".jpg,.jpeg,.png,.bmp,.gif"
+                                       OnFilesChanged="OnImageSelected"
+                                       MaximumFileCount="1"
+                                       For="@(() => selectedFile)">
+                            <ActivatorContent>
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           StartIcon="Icons.Material.Filled.CloudUpload">
+                                    Select Image
+                                </MudButton>
+                            </ActivatorContent>
+                        </MudFileUpload>
+
+                        @if (isProcessingImage)
+                        {
+                            <MudProgressLinear Indeterminate="true" />
+                            <MudText Typo="Typo.body2">Processing image...</MudText>
+                        }
+
+                        @if (!string.IsNullOrEmpty(selectedFileName))
+                        {
+                            <MudText Typo="Typo.body2">
+                                Selected: @selectedFileName
+                            </MudText>
+                        }
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Barcode Generator Card -->
+        <MudItem xs="12" md="6">
+            <MudCard Class="pa-4">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">
+                            <MudIcon Icon="Icons.Material.Filled.QrCode" Class="mr-2" />
+                            Barcode Generator
+                        </MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    <MudStack>
+                        <MudTextField @bind-Value="textToEncode"
+                                      Label="Text to encode"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true" />
+
+                        <MudStack Row="true" Spacing="2">
+                            <MudNumericField @bind-Value="barcodeWidth"
+                                             Label="Width"
+                                             Variant="Variant.Outlined"
+                                             Min="50"
+                                             Max="500" />
+
+                            <MudNumericField @bind-Value="barcodeHeight"
+                                             Label="Height"
+                                             Variant="Variant.Outlined"
+                                             Min="20"
+                                             Max="200" />
+                        </MudStack>
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   OnClick="GenerateBarcode"
+                                   Disabled="string.IsNullOrEmpty(textToEncode)"
+                                   StartIcon="Icons.Material.Filled.QrCode">
+                            Generate Barcode
+                        </MudButton>
+
+                        @if (generatedBarcodeImage != null)
+                        {
+                            <MudImage Src="@generatedBarcodeImage"
+                                      Alt="Generated Barcode"
+                                      Class="mt-2"
+                                      Style="max-width: 100%; border: 1px solid #ccc; border-radius: 4px;" />
+                        }
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Current Scan Result Card -->
+        <MudItem xs="12" md="6">
+            <MudCard Class="pa-4">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">
+                            <MudIcon Icon="Icons.Material.Filled.ScannerOutlined" Class="mr-2" />
+                            Last Scanned
+                        </MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    @if (!string.IsNullOrEmpty(lastScannedCode))
+                    {
+                        <MudStack>
+                            <MudTextField T="string"
+                                          Label="Barcode"
+                                          Value="@lastScannedCode"
+                                          ReadOnly="true"
+                                          Variant="Variant.Outlined"
+                                          Adornment="Adornment.End"
+                                          AdornmentIcon="Icons.Material.Filled.ContentCopy"
+                                          OnAdornmentClick="CopyToClipboard" />
+
+                            <MudText Typo="Typo.caption">
+                                Scanned at: @lastScanTime.ToString("yyyy-MM-dd HH:mm:ss")
+                            </MudText>
+
+                            @if (!string.IsNullOrEmpty(lastScanFormat))
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                    @lastScanFormat
+                                </MudChip>
+                            }
+                        </MudStack>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info">
+                            No barcode scanned yet. Use the hardware scan button or upload an image.
+                        </MudAlert>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Scan History Card -->
+        <MudItem xs="12">
+            <MudCard Class="pa-4">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">
+                            <MudIcon Icon="Icons.Material.Filled.History" Class="mr-2" />
+                            Scan History
+                        </MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        @if (scanHistory.Any())
+                        {
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Error"
+                                       OnClick="ClearHistory"
+                                       StartIcon="Icons.Material.Filled.Clear"
+                                       Size="Size.Small">
+                                Clear History
+                            </MudButton>
+                        }
+                    </CardHeaderActions>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    @if (scanHistory.Any())
+                    {
+                        <MudDataGrid T="ScanRecord" Items="@scanHistory" Dense="true" Hover="true" Striped="true">
+                            <Columns>
+                                <PropertyColumn Property="x => x.Timestamp" Title="Time" Format="yyyy-MM-dd HH:mm:ss" />
+                                <PropertyColumn Property="x => x.Barcode" Title="Barcode" />
+                                <PropertyColumn Property="x => x.Format" Title="Format" />
+                                <PropertyColumn Property="x => x.Source" Title="Source" />
+                                <TemplateColumn Title="Actions">
+                                    <CellTemplate>
+                                        <MudIconButton Icon="Icons.Material.Filled.ContentCopy"
+                                                       Size="Size.Small"
+                                                       OnClick="() => CopyBarcodeToClipboard(context.Item.Barcode)" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            No scan history available.
+                        </MudText>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private string lastScannedCode = "";
+    private string lastScanFormat = "";
+    private DateTime lastScanTime = DateTime.MinValue;
+    private List<ScanRecord> scanHistory = new();
+
+    // Image scanning
+    private IBrowserFile selectedFile;
+    private string selectedFileName = "";
+    private bool isProcessingImage = false;
+
+    // Barcode generation
+    private string textToEncode = "";
+    private int barcodeWidth = 200;
+    private int barcodeHeight = 50;
+    private string generatedBarcodeImage;
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to both hardware and image-based barcode events
+        HardwareScannerService.HardwareBarcodeScanned += OnHardwareBarcodeScanned;
+        BarcodeService.BarcodeScanned += OnImageBarcodeScanned;
+    }
+
+    // Handle hardware scanner events
+    private async void OnHardwareBarcodeScanned(object sender, string barcode)
+    {
+        await InvokeAsync(() =>
+        {
+            ProcessScannedBarcode(barcode, "Hardware", "Hardware");
+        });
+    }
+
+    // Handle image-based scanner events
+    private async Task OnImageBarcodeScanned(string barcode)
+    {
+        await InvokeAsync(() =>
+        {
+            // This will be called when image processing triggers the barcode event
+            // We handle it separately in OnImageSelected to avoid double-processing
+        });
+    }
+
+    private void ProcessScannedBarcode(string barcode, string format, string source)
+    {
+        lastScannedCode = barcode;
+        lastScanFormat = format;
+        lastScanTime = DateTime.Now;
+
+        AddToHistory(barcode, format, source);
+
+        StateHasChanged();
+        ToastService.Add($"Barcode scanned: {barcode}", Severity.Success);
+    }
+
+    private void AddToHistory(string barcode, string format, string source)
+    {
+        scanHistory.Insert(0, new ScanRecord
+        {
+            Barcode = barcode,
+            Format = format,
+            Source = source,
+            Timestamp = DateTime.Now
+        });
+
+        // Keep last 100 scans
+        if (scanHistory.Count > 100)
+        {
+            scanHistory.RemoveAt(scanHistory.Count - 1);
+        }
+    }
+
+    private void StartHardwareScanning()
+    {
+        HardwareScannerService.StartScanning();
+        ToastService.Add("Hardware scanning started", Severity.Info);
+    }
+
+    private void StopHardwareScanning()
+    {
+        HardwareScannerService.StopScanning();
+        ToastService.Add("Hardware scanning stopped", Severity.Info);
+    }
+
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            selectedFile = file;
+            selectedFileName = file.Name;
+            isProcessingImage = true;
+            StateHasChanged();
+
+            try
+            {
+                // Read file as bytes
+                var buffer = new byte[file.Size];
+                await file.OpenReadStream().ReadAsync(buffer);
+
+                // Process the image using your existing BarcodeService
+                var (result, format) = await BarcodeService.ReadBarcode(buffer, 0, 0);
+
+                if (!string.IsNullOrEmpty(result))
+                {
+                    ProcessScannedBarcode(result, format, "Image");
+                }
+                else
+                {
+                    ToastService.Add("No barcode found in image", Severity.Warning);
+                }
+            }
+            catch (NotImplementedException)
+            {
+                ToastService.Add("Image barcode scanning is not yet implemented", Severity.Info);
+                System.Diagnostics.Debug.WriteLine("Image barcode scanning not implemented in BarcodeService");
+            }
+            catch (Exception ex)
+            {
+                ToastService.Add($"Error processing image: {ex.Message}", Severity.Error);
+                System.Diagnostics.Debug.WriteLine($"Error processing image: {ex.Message}");
+            }
+            finally
+            {
+                isProcessingImage = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void GenerateBarcode()
+    {
+        try
+        {
+            var barcodeBytes = BarcodeService.GetBarcode(textToEncode, barcodeHeight, barcodeWidth);
+            generatedBarcodeImage = $"data:image/jpeg;base64,{Convert.ToBase64String(barcodeBytes)}";
+            ToastService.Add("Barcode generated successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            ToastService.Add($"Error generating barcode: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task CopyToClipboard()
+    {
+        await CopyBarcodeToClipboard(lastScannedCode);
+    }
+
+    private async Task CopyBarcodeToClipboard(string barcode)
+    {
+        try
+        {
+            await Clipboard.SetTextAsync(barcode);
+            ToastService.Add("Barcode copied to clipboard", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            ToastService.Add($"Failed to copy: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void ClearHistory()
+    {
+        scanHistory.Clear();
+        ToastService.Add("Scan history cleared", Severity.Info);
+    }
+
+    public void Dispose()
+    {
+        if (HardwareScannerService != null)
+        {
+            HardwareScannerService.HardwareBarcodeScanned -= OnHardwareBarcodeScanned;
+        }
+
+        if (BarcodeService != null)
+        {
+            BarcodeService.BarcodeScanned -= OnImageBarcodeScanned;
+        }
+    }
+
+    public class ScanRecord
+    {
+        public string Barcode { get; set; } = "";
+        public string Format { get; set; } = "";
+        public string Source { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+    }
+}

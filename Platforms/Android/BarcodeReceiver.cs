@@ -6,35 +6,39 @@ namespace CheapBarcodes.Platforms.Android
 {
     public class BarcodeReceiver : BroadcastReceiver
     {
+        private readonly Handler _handler;
+
         public BarcodeReceiver(Handler handler)
         {
             _handler = handler;
         }
-        readonly Handler _handler;
+
         public override void OnReceive(Context context, Intent intent)
         {
             if (intent?.Extras == null)
             {
-                System.Diagnostics.Debug.WriteLine("Barcodereceiver received null intent or extras.");
+                System.Diagnostics.Debug.WriteLine("BarcodeReceiver received null intent or extras.");
                 return;
             }
 
-            string? barcode = intent.Extras.GetString("DATA");
+            string barcode = intent.Extras.GetString("DATA");
             if (barcode == null)
             {
-                System.Diagnostics.Debug.WriteLine("Barcodereceiver received null barcode.");
+                System.Diagnostics.Debug.WriteLine("BarcodeReceiver received null barcode.");
                 return;
             }
 
-            System.Diagnostics.Debug.WriteLine($@"Barcodereceiver received barcode: {barcode}");
-            //convert bundle to use the same data param
+            System.Diagnostics.Debug.WriteLine($"BarcodeReceiver received barcode: {barcode}");
+
+            // Convert bundle to use the same data param
             Bundle bundle = intent.Extras;
             bundle.PutString("data", barcode);
-            Message msg = new Message()
-            {
-                What = ScanMessage._scan,
-                Data = bundle
-            };
+
+            // Create message using modern pattern
+            Message msg = Message.Obtain();
+            msg.What = ScanMessage._scan;
+            msg.Data = bundle;
+
             _handler.SendMessage(msg);
         }
     }
