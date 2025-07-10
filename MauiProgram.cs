@@ -1,4 +1,5 @@
 ﻿using CheapHelpers.Services;
+using CheapHelpers.Services.Communication.Barcode;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 using MudBlazor.Services;
