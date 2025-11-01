@@ -1,6 +1,6 @@
 ﻿@page "/scanner"
-@using CheapHelpers.Services
 @using CheapBarcodes.Services
+@using CheapHelpers.Services.Communication.Barcode
 @inject IBarcodeService BarcodeService
 @inject IHardwareScannerService HardwareScannerService
 @implements IDisposable
@@ -358,11 +358,11 @@
                 await file.OpenReadStream().ReadAsync(buffer);
 
                 // Process the image using your existing BarcodeService
-                var (result, format) = await BarcodeService.ReadBarcode(buffer, 0, 0);
+                var scanResult = await BarcodeService.ReadBarcodeAsync(buffer, 0, 0);
 
-                if (!string.IsNullOrEmpty(result))
+                if (scanResult.HasValue && !string.IsNullOrEmpty(scanResult.Value.Text))
                 {
-                    ProcessScannedBarcode(result, format, "Image");
+                    ProcessScannedBarcode(scanResult.Value.Text, scanResult.Value.Format, "Image");
                 }
                 else
                 {
