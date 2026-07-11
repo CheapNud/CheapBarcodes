@@ -36,6 +36,9 @@ _Nothing blocking._
   - Settings page (Preferences-backed): base URL, auth header name + value (API key/bearer), auto-post on/off, test-connection button
   - POST JSON per scan: barcode, format, source, timestamp, device name; reuse the registered singleton HttpClient (currently unused — do NOT remove it)
   - Legacy reference: MecamApplication.Handheld posted to hardcoded WebServiceBase endpoints — this replaces that pattern with runtime config
+- [ ] (2026-07-11) PRIORITY: OAuth add-on for API phone-home — client-credentials token flow on top of the settings page [user]
+  - Settings additions: token endpoint, client id, client secret (SecureStorage, not Preferences), scope; acquire + cache token, refresh on 401
+  - Builds on the phone-home item above — plain header auth stays the default, OAuth activates when a token endpoint is configured
 - [ ] (2026-07-11) Fix receiver registration for Android 14+ — RegisterReceiver without RECEIVER_EXPORTED/NOT_EXPORTED throws SecurityException on API 34+, silently swallowed [audit]
   - MainActivity.cs:169,190,198 — vendor broadcasts (BARCODEPORT_RECEIVEDDATA_ACTION, FUN_KEY) originate outside the app, so likely need Exported; verify on RT150
 - [ ] (2026-07-11) Fix DI race in MainActivity.OnCreate — Task.Delay(100) hope-based service resolution drops hardware scans if MAUI boots slower [audit]

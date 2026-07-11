@@ -36,7 +36,7 @@ namespace CheapBarcodes.Platforms.Android
 
             // Create message using modern pattern
             Message msg = Message.Obtain();
-            msg.What = ScanMessage._scan;
+            msg.What = ScanMessage.Scan;
             msg.Data = bundle;
 
             _handler.SendMessage(msg);

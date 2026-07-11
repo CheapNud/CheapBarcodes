@@ -258,6 +258,8 @@
 </MudContainer>
 
 @code {
+    private const long MaxImageBytes = 10 * 1024 * 1024;
+
     private string lastScannedCode = "";
     private string lastScanFormat = "";
     private DateTime lastScanTime = DateTime.MinValue;
@@ -286,7 +288,8 @@
     {
         await InvokeAsync(() =>
         {
-            ProcessScannedBarcode(barcode, "Hardware", "Hardware");
+            // The vendor intent carries no format information
+            ProcessScannedBarcode(barcode, "Unknown", "Hardware");
         });
     }
 
@@ -353,9 +356,11 @@
 
             try
             {
-                // Read file as bytes
-                var buffer = new byte[file.Size];
-                await file.OpenReadStream().ReadAsync(buffer);
+                // Read file as bytes - a single ReadAsync is not guaranteed to fill the buffer
+                using var imageStream = file.OpenReadStream(MaxImageBytes);
+                using var imageBuffer = new MemoryStream();
+                await imageStream.CopyToAsync(imageBuffer);
+                var buffer = imageBuffer.ToArray();
 
                 // Process the image using your existing BarcodeService
                 var scanResult = await BarcodeService.ReadBarcodeAsync(buffer);

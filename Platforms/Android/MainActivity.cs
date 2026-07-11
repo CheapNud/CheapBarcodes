@@ -32,18 +32,6 @@ namespace CheapBarcodes.Platforms.Android
 
                 // Use modern Handler constructor with Looper
                 _handler = new Handler(Looper.MainLooper, new HandlerCallback(this));
-
-                // Get the hardware scanner service - will be available after MAUI initialization
-                Task.Run(async () =>
-                {
-                    // Wait for MAUI to initialize
-                    await Task.Delay(100);
-                    _hardwareScannerService = IPlatformApplication.Current?.Services?.GetService<IHardwareScannerService>();
-                    if (_hardwareScannerService != null)
-                    {
-                        _hardwareScannerService.StartScanning();
-                    }
-                });
             }
             catch (Exception ex)
             {
@@ -166,7 +154,7 @@ namespace CheapBarcodes.Platforms.Android
                 _keyReceiver = new KeyReceiver(_scanThread);
                 IntentFilter keyFilter = new IntentFilter();
                 keyFilter.AddAction("android.rfid.FUN_KEY");
-                RegisterReceiver(_keyReceiver, keyFilter);
+                RegisterVendorReceiver(_keyReceiver, keyFilter);
 
                 _scanThread.Start();
                 return true;
@@ -187,7 +175,7 @@ namespace CheapBarcodes.Platforms.Android
                 barcodeFilter.AddAction("com.android.serial.BARCODEPORT_RECEIVEDDATA_ACTION");
 
                 _barcodeReceiver = new BarcodeReceiver(_handler);
-                RegisterReceiver(_barcodeReceiver, barcodeFilter);
+                RegisterVendorReceiver(_barcodeReceiver, barcodeFilter);
 
                 // If we don't have SerialPort scanning, also register key receiver
                 if (_keyReceiver == null)
@@ -195,12 +183,26 @@ namespace CheapBarcodes.Platforms.Android
                     _keyReceiver = new KeyReceiver(null); // No scan thread available
                     IntentFilter keyFilter = new IntentFilter();
                     keyFilter.AddAction("android.rfid.FUN_KEY");
-                    RegisterReceiver(_keyReceiver, keyFilter);
+                    RegisterVendorReceiver(_keyReceiver, keyFilter);
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error registering broadcast receivers: {ex.Message}");
+            }
+        }
+
+        private void RegisterVendorReceiver(BroadcastReceiver receiver, IntentFilter filter)
+        {
+            // API 34+ requires an export flag for non-system broadcasts; these come
+            // from vendor scanner firmware (another process), so they must be exported
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            {
+                RegisterReceiver(receiver, filter, ReceiverFlags.Exported);
+            }
+            else
+            {
+                RegisterReceiver(receiver, filter);
             }
         }
 
@@ -247,7 +249,13 @@ namespace CheapBarcodes.Platforms.Android
 
                 System.Diagnostics.Debug.WriteLine($"MainActivity received barcode: {barcode}");
 
-                // Process through the hardware scanner service (CORRECT REFERENCE)
+                // Resolve lazily - MAUI DI is guaranteed up by the time a scan arrives
+                if (_hardwareScannerService == null)
+                {
+                    _hardwareScannerService = IPlatformApplication.Current?.Services?.GetService<IHardwareScannerService>();
+                    _hardwareScannerService?.StartScanning();
+                }
+
                 _hardwareScannerService?.OnScan(barcode);
             }
             catch (Exception ex)
