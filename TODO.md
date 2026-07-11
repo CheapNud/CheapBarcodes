@@ -37,8 +37,6 @@ _Nothing blocking._
   - Builds on the phone-home item above — plain header auth stays the default, OAuth activates when a token endpoint is configured
 - [ ] (2026-07-11) Add WakeLock during scanning — serial scanner dies when the screen dims [audit]
   - PARTIAL_WAKE_LOCK acquire in OnResume / release in OnPause + WAKE_LOCK permission (legacy gap too)
-- [ ] (2026-07-11) Persist scan history + CSV export/share — history currently dies with the app session [audit]
-  - Lazy version: Preferences + JSON of last 100 records; CSV via Share API
 - [ ] (2026-07-11) Duplicate-scan guard in UI layer — ignore identical barcode within ~2s on top of KeyReceiver debounce [audit]
 - [ ] (2026-07-11) Distinct error sound — second MediaPlayer buzz for failures (no barcode found, API post failed) [audit]
 - [ ] (2026-07-11) Show app version on Home via VersionTracking.CurrentVersion [audit]
@@ -53,6 +51,8 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-11 → 2026-07-11) Persist scan history + CSV export/share — history currently dies with the app session [audit]
+  - Preferences + JSON of last 100 records; Export CSV button shares via the Android share sheet (PR #3)
 - [x] (2026-07-11 → 2026-07-11) Fold CheapBarcodes.Binding into this repo — was an unversioned sibling folder, briefly its own GitHub repo (now archived) [user]
 - [x] (2026-07-11 → 2026-07-11) Configurable API phone-home — post scans to a user-configured endpoint so the app adapts to any environment [user]
   - Settings page (Preferences-backed): base URL, auth header name + value (API key/bearer), auto-post on/off, test-connection button
