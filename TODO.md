@@ -32,11 +32,36 @@ _Nothing blocking._
 
 ## Planned
 
-_Nothing planned._
+- [ ] (2026-07-11) Configurable API phone-home — post scans to a user-configured endpoint so the app adapts to any environment [user]
+  - Settings page (Preferences-backed): base URL, auth header name + value (API key/bearer), auto-post on/off, test-connection button
+  - POST JSON per scan: barcode, format, source, timestamp, device name; reuse the registered singleton HttpClient (currently unused — do NOT remove it)
+  - Legacy reference: MecamApplication.Handheld posted to hardcoded WebServiceBase endpoints — this replaces that pattern with runtime config
+- [ ] (2026-07-11) Fix receiver registration for Android 14+ — RegisterReceiver without RECEIVER_EXPORTED/NOT_EXPORTED throws SecurityException on API 34+, silently swallowed [audit]
+  - MainActivity.cs:169,190,198 — vendor broadcasts (BARCODEPORT_RECEIVEDDATA_ACTION, FUN_KEY) originate outside the app, so likely need Exported; verify on RT150
+- [ ] (2026-07-11) Fix DI race in MainActivity.OnCreate — Task.Delay(100) hope-based service resolution drops hardware scans if MAUI boots slower [audit]
+  - Resolve lazily in OnScanMessage with ??= like the legacy Handheld did (MainActivity.cs:37-46)
+- [ ] (2026-07-11) Fix image upload partial-read — single ReadAsync doesn't guarantee a full buffer and OpenReadStream caps at 500KB [audit]
+  - Scanner.razor:357-358 — use OpenReadStream(maxAllowedSize) + CopyToAsync into a MemoryStream
+- [ ] (2026-07-11) Fix history format column for hardware scans — always says "Hardware" instead of the barcode format [audit]
+  - Scanner.razor:288 — intent extras carry no format; display "Unknown" or decode-side detection
+- [ ] (2026-07-11) Add WakeLock during scanning — serial scanner dies when the screen dims [audit]
+  - PARTIAL_WAKE_LOCK acquire in OnResume / release in OnPause + WAKE_LOCK permission (legacy gap too)
+- [ ] (2026-07-11) Persist scan history + CSV export/share — history currently dies with the app session [audit]
+  - Lazy version: Preferences + JSON of last 100 records; CSV via Share API
+- [ ] (2026-07-11) Remove dead weight: MvvmCross.Plugin.Messenger (only supplies MvxMessage for one const), rename ScanMesasge.cs → ScanMessage.cs, drop unused CAMERA permission [audit]
+  - Replace ScanMessage with a plain class holding const int Scan = 1001
+  - CAMERA comes back if/when camera scanning (Future) lands
+- [ ] (2026-07-11) Duplicate-scan guard in UI layer — ignore identical barcode within ~2s on top of KeyReceiver debounce [audit]
+- [ ] (2026-07-11) Distinct error sound — second MediaPlayer buzz for failures (no barcode found, API post failed) [audit]
+- [ ] (2026-07-11) Show app version on Home via VersionTracking.CurrentVersion [audit]
 
 ## Future
 
-_Nothing in future._
+- [ ] (2026-07-11) Camera-based scanning mode so the app works on ordinary phones, not just RT150 (BarcodeScanning.Native.Maui or ZXing camera view) [audit]
+- [ ] (2026-07-11) Offline queue for API phone-home — batch-accumulate scans locally and upload on reconnect (legacy CutSort/Cover pattern, but persisted) [audit]
+- [ ] (2026-07-11) Barcode format picker + QR support in the generator — service defaults to CODE_39, ZXing already encodes the rest [audit]
+- [ ] (2026-07-11) GS1/EAN application-identifier parsing on scan display [audit]
+- [ ] (2026-07-11) Crash telemetry via Sentry MAUI SDK (AppCenter is retired) — optional, evaluate need first [audit]
 
 ## Done
 
