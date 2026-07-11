@@ -1,0 +1,104 @@
+@page "/settings"
+@using CheapBarcodes.Services
+@inject ScanApiClient ScanApi
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-4">
+    <MudCard Class="pa-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">
+                    <MudIcon Icon="Icons.Material.Filled.CloudUpload" Class="mr-2" />
+                    API Settings
+                </MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+
+        <MudCardContent>
+            <MudStack>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Configure an endpoint to post scans to. Leave the URL empty to keep the app fully offline.
+                </MudText>
+
+                <MudTextField @bind-Value="uploadOptions.BaseUrl"
+                              Label="API URL"
+                              Placeholder="https://example.com/scans"
+                              Variant="Variant.Outlined"
+                              Immediate="true" />
+
+                <MudTextField @bind-Value="uploadOptions.AuthHeaderName"
+                              Label="Auth header name (optional)"
+                              Placeholder="Authorization or X-Api-Key"
+                              Variant="Variant.Outlined" />
+
+                <MudTextField @bind-Value="uploadOptions.AuthHeaderValue"
+                              Label="Auth header value (optional)"
+                              Placeholder="Bearer eyJ... or key value"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Password" />
+
+                <MudSwitch T="bool"
+                           @bind-Value="uploadOptions.AutoPost"
+                           Color="Color.Primary"
+                           Label="Automatically post every scan" />
+
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="SaveSettings"
+                               StartIcon="Icons.Material.Filled.Save">
+                        Save
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Secondary"
+                               OnClick="TestConnection"
+                               Disabled="@(isTesting || string.IsNullOrWhiteSpace(uploadOptions.BaseUrl))"
+                               StartIcon="Icons.Material.Filled.NetworkCheck">
+                        Test
+                    </MudButton>
+                </MudStack>
+
+                @if (isTesting)
+                {
+                    <MudProgressLinear Indeterminate="true" />
+                }
+            </MudStack>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private ApiUploadOptions uploadOptions = new();
+    private bool isTesting;
+
+    protected override void OnInitialized()
+    {
+        uploadOptions = ApiUploadOptions.Load();
+    }
+
+    private void SaveSettings()
+    {
+        uploadOptions.Save();
+        ToastService.Add("API settings saved", Severity.Success);
+    }
+
+    private async Task TestConnection()
+    {
+        isTesting = true;
+        try
+        {
+            // Save first so the test uses what is on screen
+            uploadOptions.Save();
+            var connectionResult = await ScanApi.TestConnectionAsync();
+            ToastService.Add($"API responded: {connectionResult}", Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            ToastService.Add($"Connection failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isTesting = false;
+        }
+    }
+}

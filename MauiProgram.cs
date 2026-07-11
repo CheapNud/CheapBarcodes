@@ -1,4 +1,5 @@
-﻿using CheapHelpers.Services;
+﻿using CheapBarcodes.Services;
+using CheapHelpers.Services;
 using CheapHelpers.Services.Communication.Barcode;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
@@ -47,6 +48,9 @@ namespace CheapBarcodes
 
             // Add barcode service dependencies
             builder.Services.AddSingleton<IBarcodeService, BarcodeService>();
+
+            // Configurable scan phone-home (see ApiSettings page)
+            builder.Services.AddSingleton<ScanApiClient>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
