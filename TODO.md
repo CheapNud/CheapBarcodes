@@ -53,6 +53,7 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-11 → 2026-07-11) Fold CheapBarcodes.Binding into this repo — was an unversioned sibling folder, briefly its own GitHub repo (now archived) [user]
 - [x] (2026-07-11 → 2026-07-11) Configurable API phone-home — post scans to a user-configured endpoint so the app adapts to any environment [user]
   - Settings page (Preferences-backed): base URL, auth header name + value (API key/bearer), auto-post on/off, test-connection button
   - POST JSON per scan: barcode, format, source, timestamp, device name; reuse the registered singleton HttpClient (currently unused — do NOT remove it)
