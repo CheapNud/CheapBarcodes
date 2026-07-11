@@ -1,4 +1,6 @@
 ﻿@page "/scanner"
+@using System.Text
+@using System.Text.Json
 @using CheapBarcodes.Services
 @using CheapHelpers.Services.Communication.Barcode
 @inject IBarcodeService BarcodeService
@@ -216,13 +218,23 @@
                     <CardHeaderActions>
                         @if (scanHistory.Any())
                         {
-                            <MudButton Variant="Variant.Outlined"
-                                       Color="Color.Error"
-                                       OnClick="ClearHistory"
-                                       StartIcon="Icons.Material.Filled.Clear"
-                                       Size="Size.Small">
-                                Clear History
-                            </MudButton>
+                            <MudStack Row="true" Spacing="2">
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Primary"
+                                           OnClick="ExportHistory"
+                                           StartIcon="Icons.Material.Filled.Share"
+                                           Size="Size.Small">
+                                    Export CSV
+                                </MudButton>
+
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Error"
+                                           OnClick="ClearHistory"
+                                           StartIcon="Icons.Material.Filled.Clear"
+                                           Size="Size.Small">
+                                    Clear History
+                                </MudButton>
+                            </MudStack>
                         }
                     </CardHeaderActions>
                 </MudCardHeader>
@@ -260,6 +272,7 @@
 
 @code {
     private const long MaxImageBytes = 10 * 1024 * 1024;
+    private const string HistoryPreferenceKey = "scan_history";
 
     private string lastScannedCode = "";
     private string lastScanFormat = "";
@@ -279,6 +292,8 @@
 
     protected override void OnInitialized()
     {
+        scanHistory = LoadHistory();
+
         // Subscribe to both hardware and image-based barcode events
         HardwareScannerService.HardwareBarcodeScanned += OnHardwareBarcodeScanned;
         BarcodeService.BarcodeScanned += OnImageBarcodeScanned;
@@ -352,7 +367,60 @@
         {
             scanHistory.RemoveAt(scanHistory.Count - 1);
         }
+
+        SaveHistory();
     }
+
+    private List<ScanRecord> LoadHistory()
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<List<ScanRecord>>(
+                Preferences.Default.Get(HistoryPreferenceKey, "[]")) ?? [];
+        }
+        catch (JsonException)
+        {
+            // Corrupt history is not worth crashing the page over
+            return [];
+        }
+    }
+
+    private void SaveHistory()
+    {
+        Preferences.Default.Set(HistoryPreferenceKey, JsonSerializer.Serialize(scanHistory));
+    }
+
+    private async Task ExportHistory()
+    {
+        try
+        {
+            var csvBuilder = new StringBuilder();
+            csvBuilder.AppendLine("Timestamp,Barcode,Format,Source");
+            foreach (var scanRecord in scanHistory)
+            {
+                csvBuilder.AppendLine(string.Join(',',
+                    CsvField(scanRecord.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")),
+                    CsvField(scanRecord.Barcode),
+                    CsvField(scanRecord.Format),
+                    CsvField(scanRecord.Source)));
+            }
+
+            var exportPath = Path.Combine(FileSystem.CacheDirectory, $"scan-history-{DateTime.Now:yyyyMMdd-HHmmss}.csv");
+            await File.WriteAllTextAsync(exportPath, csvBuilder.ToString());
+
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = "Scan history",
+                File = new ShareFile(exportPath)
+            });
+        }
+        catch (Exception ex)
+        {
+            ToastService.Add($"Export failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private static string CsvField(string rawValue) => $"\"{rawValue.Replace("\"", "\"\"")}\"";
 
     private void StartHardwareScanning()
     {
@@ -444,6 +512,7 @@
     private void ClearHistory()
     {
         scanHistory.Clear();
+        SaveHistory();
         ToastService.Add("Scan history cleared", Severity.Info);
     }
 
