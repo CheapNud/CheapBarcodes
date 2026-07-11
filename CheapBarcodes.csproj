@@ -87,7 +87,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CheapBarcodes.Binding\CheapBarcodes.Binding.csproj" />
+    <ProjectReference Include="CheapBarcodes.Binding\CheapBarcodes.Binding.csproj" />
   </ItemGroup>
 
 </Project>

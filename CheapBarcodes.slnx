@@ -1,5 +1,5 @@
 <Solution>
-  <Project Path="../CheapBarcodes.Binding/CheapBarcodes.Binding.csproj" />
+  <Project Path="CheapBarcodes.Binding/CheapBarcodes.Binding.csproj" />
   <Project Path="CheapBarcodes.csproj">
     <Deploy Solution="Debug|*" />
   </Project>
