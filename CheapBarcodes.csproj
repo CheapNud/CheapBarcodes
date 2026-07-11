@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0-android</TargetFrameworks>
+    <TargetFrameworks>net11.0-android</TargetFrameworks>
     <!--<TargetFrameworks>net9.0-android;net9.0-maccatalyst</TargetFrameworks>-->
     <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
     <!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
@@ -79,16 +79,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Pinned to 1.1.2: newer CheapHelpers.Services pulls CheapHelpers.EF, whose
+         Microsoft.AspNetCore.App framework reference has no Android runtime pack.
+         Upgrade once the barcode services ship in an Android-safe package. -->
     <PackageReference Include="CheapHelpers.Services" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="9.0.120" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.10" />
-    <PackageReference Include="MudBlazor" Version="8.13.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="10.0.80" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
+    <PackageReference Include="MudBlazor" Version="9.7.0" />
     <PackageReference Include="MvvmCross.Plugin.Messenger" Version="9.4.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android35.0'">
-    <ProjectReference Include="..\CheapBarcodes.Binding\CheapBarcodes.Binding.csproj" />
   </ItemGroup>
 
   <ItemGroup>
