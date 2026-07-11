@@ -394,7 +394,8 @@
     {
         try
         {
-            var csvBuilder = new StringBuilder("Timestamp,Barcode,Format,Source\n");
+            var csvBuilder = new StringBuilder();
+            csvBuilder.AppendLine("Timestamp,Barcode,Format,Source");
             foreach (var scanRecord in scanHistory)
             {
                 csvBuilder.AppendLine(string.Join(',',
