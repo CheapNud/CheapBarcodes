@@ -1,7 +1,8 @@
 namespace CheapBarcodes.Services
 {
     /// <summary>
-    /// User-configurable phone-home settings, persisted via MAUI Preferences.
+    /// User-configurable phone-home settings. Non-sensitive values persist via
+    /// MAUI Preferences; the auth header value lives in SecureStorage.
     /// </summary>
     public class ApiUploadOptions
     {
@@ -15,22 +16,32 @@ namespace CheapBarcodes.Services
         public string AuthHeaderValue { get; set; } = string.Empty;
         public bool AutoPost { get; set; }
 
-        public bool IsConfigured => !string.IsNullOrWhiteSpace(BaseUrl);
+        public bool IsConfigured => Uri.TryCreate(BaseUrl, UriKind.Absolute, out var parsedUrl)
+            && (parsedUrl.Scheme == Uri.UriSchemeHttps || parsedUrl.Scheme == Uri.UriSchemeHttp);
 
-        public static ApiUploadOptions Load() => new()
+        /// <summary>
+        /// The auth header is only ever sent over HTTPS (see ScanApiClient).
+        /// </summary>
+        public bool IsHttps => Uri.TryCreate(BaseUrl, UriKind.Absolute, out var parsedUrl)
+            && parsedUrl.Scheme == Uri.UriSchemeHttps;
+
+        public static async Task<ApiUploadOptions> LoadAsync() => new()
         {
             BaseUrl = Preferences.Default.Get(BaseUrlKey, string.Empty),
             AuthHeaderName = Preferences.Default.Get(AuthHeaderNameKey, string.Empty),
-            AuthHeaderValue = Preferences.Default.Get(AuthHeaderValueKey, string.Empty),
+            AuthHeaderValue = await SecureStorage.Default.GetAsync(AuthHeaderValueKey) ?? string.Empty,
             AutoPost = Preferences.Default.Get(AutoPostKey, false),
         };
 
-        public void Save()
+        public async Task SaveAsync()
         {
             Preferences.Default.Set(BaseUrlKey, BaseUrl?.Trim() ?? string.Empty);
             Preferences.Default.Set(AuthHeaderNameKey, AuthHeaderName?.Trim() ?? string.Empty);
-            Preferences.Default.Set(AuthHeaderValueKey, AuthHeaderValue?.Trim() ?? string.Empty);
             Preferences.Default.Set(AutoPostKey, AutoPost);
+            await SecureStorage.Default.SetAsync(AuthHeaderValueKey, AuthHeaderValue?.Trim() ?? string.Empty);
+
+            // Clean up any plaintext value written by earlier builds
+            Preferences.Default.Remove(AuthHeaderValueKey);
         }
     }
 }

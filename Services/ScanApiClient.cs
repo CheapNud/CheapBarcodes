@@ -4,12 +4,21 @@ namespace CheapBarcodes.Services
 {
     /// <summary>
     /// Posts scans to the user-configured API endpoint (see ApiUploadOptions).
+    /// Uses its own HttpClient with redirects disabled so the auth header
+    /// cannot leak to a redirect target, and only sends auth over HTTPS.
     /// </summary>
-    public class ScanApiClient(HttpClient httpClient)
+    public class ScanApiClient
     {
+        private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
+
+        private readonly HttpClient _httpClient = new(new HttpClientHandler { AllowAutoRedirect = false })
+        {
+            Timeout = RequestTimeout,
+        };
+
         public async Task PostScanAsync(string barcode, string barcodeFormat, string scanSource, DateTime timestamp, CancellationToken cancellationToken = default)
         {
-            var uploadOptions = ApiUploadOptions.Load();
+            var uploadOptions = await ApiUploadOptions.LoadAsync();
             if (!uploadOptions.IsConfigured)
             {
                 return;
@@ -25,7 +34,7 @@ namespace CheapBarcodes.Services
                 device = DeviceInfo.Current.Name,
             });
 
-            var apiResponse = await httpClient.SendAsync(apiRequest, cancellationToken);
+            var apiResponse = await _httpClient.SendAsync(apiRequest, cancellationToken);
             apiResponse.EnsureSuccessStatusCode();
         }
 
@@ -34,21 +43,23 @@ namespace CheapBarcodes.Services
         /// </summary>
         public async Task<string> TestConnectionAsync(CancellationToken cancellationToken = default)
         {
-            var uploadOptions = ApiUploadOptions.Load();
+            var uploadOptions = await ApiUploadOptions.LoadAsync();
             if (!uploadOptions.IsConfigured)
             {
-                return "No API URL configured";
+                return "No valid API URL configured";
             }
 
             using var apiRequest = BuildRequest(HttpMethod.Get, uploadOptions);
-            var apiResponse = await httpClient.SendAsync(apiRequest, cancellationToken);
+            var apiResponse = await _httpClient.SendAsync(apiRequest, cancellationToken);
             return $"{(int)apiResponse.StatusCode} {apiResponse.StatusCode}";
         }
 
         private static HttpRequestMessage BuildRequest(HttpMethod method, ApiUploadOptions uploadOptions)
         {
             var apiRequest = new HttpRequestMessage(method, uploadOptions.BaseUrl);
-            if (!string.IsNullOrWhiteSpace(uploadOptions.AuthHeaderName))
+
+            // Never put credentials on a cleartext connection
+            if (uploadOptions.IsHttps && !string.IsNullOrWhiteSpace(uploadOptions.AuthHeaderName))
             {
                 apiRequest.Headers.TryAddWithoutValidation(uploadOptions.AuthHeaderName, uploadOptions.AuthHeaderValue);
             }

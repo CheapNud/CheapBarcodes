@@ -17,6 +17,7 @@
             <MudStack>
                 <MudText Typo="Typo.body2" Color="Color.Secondary">
                     Configure an endpoint to post scans to. Leave the URL empty to keep the app fully offline.
+                    The auth header is only sent over HTTPS.
                 </MudText>
 
                 <MudTextField @bind-Value="uploadOptions.BaseUrl"
@@ -71,14 +72,14 @@
     private ApiUploadOptions uploadOptions = new();
     private bool isTesting;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        uploadOptions = ApiUploadOptions.Load();
+        uploadOptions = await ApiUploadOptions.LoadAsync();
     }
 
-    private void SaveSettings()
+    private async Task SaveSettings()
     {
-        uploadOptions.Save();
+        await uploadOptions.SaveAsync();
         ToastService.Add("API settings saved", Severity.Success);
     }
 
@@ -88,7 +89,7 @@
         try
         {
             // Save first so the test uses what is on screen
-            uploadOptions.Save();
+            await uploadOptions.SaveAsync();
             var connectionResult = await ScanApi.TestConnectionAsync();
             ToastService.Add($"API responded: {connectionResult}", Severity.Info);
         }

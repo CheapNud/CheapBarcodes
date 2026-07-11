@@ -316,16 +316,19 @@
         ToastService.Add($"Barcode scanned: {barcode}", Severity.Success);
 
         // Fire-and-forget phone-home when configured (see API Settings page)
-        if (ApiUploadOptions.Load() is { AutoPost: true, IsConfigured: true })
-        {
-            _ = PostScanToApi(barcode, format, source, lastScanTime);
-        }
+        _ = PostScanToApi(barcode, format, source, lastScanTime);
     }
 
     private async Task PostScanToApi(string barcode, string format, string source, DateTime timestamp)
     {
         try
         {
+            var uploadOptions = await ApiUploadOptions.LoadAsync();
+            if (uploadOptions is not { AutoPost: true, IsConfigured: true })
+            {
+                return;
+            }
+
             await ScanApi.PostScanAsync(barcode, format, source, timestamp);
         }
         catch (Exception ex)
