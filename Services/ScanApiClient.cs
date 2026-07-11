@@ -16,9 +16,8 @@ namespace CheapBarcodes.Services
             Timeout = RequestTimeout,
         };
 
-        public async Task PostScanAsync(string barcode, string barcodeFormat, string scanSource, DateTime timestamp, CancellationToken cancellationToken = default)
+        public async Task PostScanAsync(ApiUploadOptions uploadOptions, string barcode, string barcodeFormat, string scanSource, DateTime timestamp, CancellationToken cancellationToken = default)
         {
-            var uploadOptions = await ApiUploadOptions.LoadAsync();
             if (!uploadOptions.IsConfigured)
             {
                 return;
@@ -41,9 +40,8 @@ namespace CheapBarcodes.Services
         /// <summary>
         /// Returns the HTTP status code of a GET against the configured URL, for the settings page test button.
         /// </summary>
-        public async Task<string> TestConnectionAsync(CancellationToken cancellationToken = default)
+        public async Task<string> TestConnectionAsync(ApiUploadOptions uploadOptions, CancellationToken cancellationToken = default)
         {
-            var uploadOptions = await ApiUploadOptions.LoadAsync();
             if (!uploadOptions.IsConfigured)
             {
                 return "No valid API URL configured";

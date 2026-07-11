@@ -329,7 +329,7 @@
                 return;
             }
 
-            await ScanApi.PostScanAsync(barcode, format, source, timestamp);
+            await ScanApi.PostScanAsync(uploadOptions, barcode, format, source, timestamp);
         }
         catch (Exception ex)
         {

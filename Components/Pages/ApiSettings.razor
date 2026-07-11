@@ -90,7 +90,7 @@
         {
             // Save first so the test uses what is on screen
             await uploadOptions.SaveAsync();
-            var connectionResult = await ScanApi.TestConnectionAsync();
+            var connectionResult = await ScanApi.TestConnectionAsync(uploadOptions);
             ToastService.Add($"API responded: {connectionResult}", Severity.Info);
         }
         catch (Exception ex)

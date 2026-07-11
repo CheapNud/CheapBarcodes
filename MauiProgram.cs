@@ -19,17 +19,6 @@ namespace CheapBarcodes
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
-            // Add HTTP client
-            builder.Services.AddSingleton<HttpClient>(serviceProvider =>
-            {
-                var httpClient = new HttpClient
-                {
-                    Timeout = TimeSpan.FromMinutes(2)
-                };
-                httpClient.DefaultRequestHeaders.ExpectContinue = false;
-                return httpClient;
-            });
-
             // Add MAUI Blazor WebView
             builder.Services.AddMauiBlazorWebView();
 
