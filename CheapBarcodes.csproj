@@ -21,6 +21,9 @@
     <EnableDefaultCssItems>false</EnableDefaultCssItems>
     <Nullable>enable</Nullable>
 
+    <!-- The binding project lives in a subfolder; keep its sources out of this project's globs -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CheapBarcodes.Binding/**</DefaultItemExcludes>
+
     <!-- Display name -->
     <ApplicationTitle>CheapBarcodes</ApplicationTitle>
 
