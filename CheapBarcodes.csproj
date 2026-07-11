@@ -79,10 +79,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Pinned to 1.1.2: newer CheapHelpers.Services pulls CheapHelpers.EF, whose
-         Microsoft.AspNetCore.App framework reference has no Android runtime pack.
-         Upgrade once the barcode services ship in an Android-safe package. -->
-    <PackageReference Include="CheapHelpers.Services" Version="1.1.2" />
+    <PackageReference Include="CheapHelpers.Services" Version="3.6.0" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="10.0.80" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />

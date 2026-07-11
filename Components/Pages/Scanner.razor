@@ -358,7 +358,7 @@
                 await file.OpenReadStream().ReadAsync(buffer);
 
                 // Process the image using your existing BarcodeService
-                var scanResult = await BarcodeService.ReadBarcodeAsync(buffer, 0, 0);
+                var scanResult = await BarcodeService.ReadBarcodeAsync(buffer);
 
                 if (scanResult.HasValue && !string.IsNullOrEmpty(scanResult.Value.Text))
                 {
@@ -368,11 +368,6 @@
                 {
                     ToastService.Add("No barcode found in image", Severity.Warning);
                 }
-            }
-            catch (NotImplementedException)
-            {
-                ToastService.Add("Image barcode scanning is not yet implemented", Severity.Info);
-                System.Diagnostics.Debug.WriteLine("Image barcode scanning not implemented in BarcodeService");
             }
             catch (Exception ex)
             {
@@ -387,11 +382,11 @@
         }
     }
 
-    private void GenerateBarcode()
+    private async Task GenerateBarcode()
     {
         try
         {
-            var barcodeBytes = BarcodeService.GetBarcode(textToEncode, barcodeHeight, barcodeWidth);
+            var barcodeBytes = await BarcodeService.GetBarcodeAsync(textToEncode, barcodeHeight, barcodeWidth);
             generatedBarcodeImage = $"data:image/jpeg;base64,{Convert.ToBase64String(barcodeBytes)}";
             ToastService.Add("Barcode generated successfully", Severity.Success);
         }

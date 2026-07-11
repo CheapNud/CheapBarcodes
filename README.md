@@ -18,8 +18,6 @@ A .NET MAUI Blazor hybrid application for Android that provides comprehensive ba
 - **Async Processing**: Non-blocking image analysis with progress indicators
 - **Multiple Format Detection**: Automatic barcode format recognition
 
-> **Note**: Image scanning requires `ReadBarcodeAsync` implementation in CheapHelpers.Services library (currently throws `NotImplementedException`).
-
 ### Barcode Generation
 - **Text-to-Barcode**: Generate barcodes from any text input
 - **Customizable Dimensions**: Width (50-500px) and height (20-200px) configuration
@@ -48,12 +46,12 @@ A .NET MAUI Blazor hybrid application for Android that provides comprehensive ba
 | MAUI | 10.0.80 | Cross-platform app framework |
 | Blazor WebView | 10.0.80 | Hybrid web UI rendering |
 | MudBlazor | 9.7.0 | Material Design component library |
-| CheapHelpers.Services | 1.1.2 (pinned) | Barcode service abstractions |
+| CheapHelpers.Services | 3.6.0 | Barcode services (generation, image scanning) |
 | MvvmCross.Plugin.Messenger | 9.4.0 | Message passing |
 
 ### Android Requirements
 - **Minimum SDK**: API 24 (Android 7.0)
-- **Target SDK**: API 35 (Android 15)
+- **Target SDK**: API 36 (Android 16)
 - **Architecture**: armeabi-v7a (32-bit ARM)
 
 ### Permissions
@@ -135,7 +133,7 @@ Native libraries (`libdevapi.so`, `libirdaSerialPort.so`) provide ARM-native imp
 
 ### Prerequisites
 1. Visual Studio 2022 (17.14+) or Visual Studio Code
-2. .NET 10 SDK (RC2 or later)
+2. .NET 11 SDK (preview)
 3. Android SDK (API 24-36)
 4. RT150 barcode scanner device (for hardware scanning)
 
@@ -143,7 +141,7 @@ Native libraries (`libdevapi.so`, `libirdaSerialPort.so`) provide ARM-native imp
 
 #### Visual Studio
 1. Clone the repository
-2. Open `CheapBarcodes.sln`
+2. Open `CheapBarcodes.slnx`
 3. Restore NuGet packages
 4. Set build configuration to Debug/Release
 5. Select Android emulator or physical device
@@ -234,11 +232,11 @@ public interface IHardwareScannerService
 Interface for barcode generation and image scanning.
 
 ```csharp
-// Generate barcode from text
-byte[] GetBarcode(string text, int height, int width)
+// Generate barcode from text (async)
+Task<byte[]> GetBarcodeAsync(string input, int height = 30, int width = 100, BarcodeFormat format = BarcodeFormat.CODE_39, CancellationToken cancellationToken = default)
 
 // Scan barcode from image (async)
-Task<(string Text, string Format)?> ReadBarcodeAsync(byte[] imageData, int width, int height, CancellationToken cancellationToken = default)
+Task<(string Text, string Format)?> ReadBarcodeAsync(byte[] imageBytes, CancellationToken cancellationToken = default)
 
 // Event when barcode is detected
 event Func<string, Task> BarcodeScanned
@@ -249,7 +247,7 @@ event Func<string, Task> BarcodeScanned
 var buffer = new byte[file.Size];
 await file.OpenReadStream().ReadAsync(buffer);
 
-var scanResult = await BarcodeService.ReadBarcodeAsync(buffer, 0, 0);
+var scanResult = await BarcodeService.ReadBarcodeAsync(buffer);
 if (scanResult.HasValue && !string.IsNullOrEmpty(scanResult.Value.Text))
 {
     ProcessScannedBarcode(scanResult.Value.Text, scanResult.Value.Format, "Image");
@@ -299,10 +297,9 @@ The app uses multiple event patterns:
 - **Handler.Callback**: Android message passing
 
 ### Known Limitations
-1. **Image Scanning**: ReadBarcodeAsync throws NotImplementedException; CheapHelpers.Services is pinned to 1.1.2 because newer versions depend on CheapHelpers.EF, whose ASP.NET Core framework reference cannot be used on Android
-2. **Single Platform**: Android-only (no iOS/Windows support)
-3. **RT150 Specific**: Hardware scanning optimized for RT150 devices
-4. **Session History**: Scan history clears when app restarts
+1. **Single Platform**: Android-only (no iOS/Windows support)
+2. **RT150 Specific**: Hardware scanning optimized for RT150 devices
+3. **Session History**: Scan history clears when app restarts
 
 ## Contributing
 When contributing, ensure:

@@ -28,10 +28,7 @@
 
 ## Blocking
 
-- [ ] (2026-07-11) Unpin CheapHelpers.Services and enable image scanning once barcode services ship in an Android-safe package [user]
-  - Pinned to 1.1.2: newer versions drag in CheapHelpers.EF, whose Microsoft.AspNetCore.App framework reference has no Android runtime pack (NETSDK1082)
-  - 1.1.2's `ReadBarcodeAsync` throws NotImplementedException, so image scanning is dead until then
-  - On upgrade: `ReadBarcodeAsync(bytes)` drops the width/height args, `GetBarcode` becomes `GetBarcodeAsync` — Scanner.razor call sites
+_Nothing blocking._
 
 ## Planned
 
@@ -43,4 +40,8 @@ _Nothing in future._
 
 ## Done
 
+- [x] (2026-07-11 → 2026-07-11) Unpin CheapHelpers.Services and enable image scanning [user]
+  - CheapHelpers 3.6.0 dropped the Microsoft.AspNetCore.App framework reference from CheapHelpers.EF, so the NETSDK1082 Android blocker is gone
+  - Migrated Scanner.razor: `ReadBarcodeAsync(bytes)` (width/height args dropped), `GetBarcode` → `await GetBarcodeAsync`; image scanning now functional
+- [x] (2026-07-11 → 2026-07-11) Migrate solution to slnx format like sibling repos [user]
 - [x] (2026-07-11 → 2026-07-11) Bring repo in line with sibling projects: net11.0-android + MAUI 10.0.80 + MudBlazor 9.7.0, CodeQL (buildless) + dependency review workflows, README refresh [user]
