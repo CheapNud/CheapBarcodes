@@ -3,6 +3,7 @@
 @using CheapHelpers.Services.Communication.Barcode
 @inject IBarcodeService BarcodeService
 @inject IHardwareScannerService HardwareScannerService
+@inject ScanApiClient ScanApi
 @implements IDisposable
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
@@ -313,6 +314,27 @@
 
         StateHasChanged();
         ToastService.Add($"Barcode scanned: {barcode}", Severity.Success);
+
+        // Fire-and-forget phone-home when configured (see API Settings page)
+        _ = PostScanToApi(barcode, format, source, lastScanTime);
+    }
+
+    private async Task PostScanToApi(string barcode, string format, string source, DateTime timestamp)
+    {
+        try
+        {
+            var uploadOptions = await ApiUploadOptions.LoadAsync();
+            if (uploadOptions is not { AutoPost: true, IsConfigured: true })
+            {
+                return;
+            }
+
+            await ScanApi.PostScanAsync(uploadOptions, barcode, format, source, timestamp);
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => ToastService.Add($"API post failed: {ex.Message}", Severity.Error));
+        }
     }
 
     private void AddToHistory(string barcode, string format, string source)

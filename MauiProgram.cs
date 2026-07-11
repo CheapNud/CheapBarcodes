@@ -1,4 +1,5 @@
-﻿using CheapHelpers.Services;
+﻿using CheapBarcodes.Services;
+using CheapHelpers.Services;
 using CheapHelpers.Services.Communication.Barcode;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
@@ -18,17 +19,6 @@ namespace CheapBarcodes
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
-            // Add HTTP client
-            builder.Services.AddSingleton<HttpClient>(serviceProvider =>
-            {
-                var httpClient = new HttpClient
-                {
-                    Timeout = TimeSpan.FromMinutes(2)
-                };
-                httpClient.DefaultRequestHeaders.ExpectContinue = false;
-                return httpClient;
-            });
-
             // Add MAUI Blazor WebView
             builder.Services.AddMauiBlazorWebView();
 
@@ -47,6 +37,9 @@ namespace CheapBarcodes
 
             // Add barcode service dependencies
             builder.Services.AddSingleton<IBarcodeService, BarcodeService>();
+
+            // Configurable scan phone-home (see ApiSettings page)
+            builder.Services.AddSingleton<ScanApiClient>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
