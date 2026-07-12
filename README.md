@@ -42,12 +42,11 @@ A .NET MAUI Blazor hybrid application for Android and Windows that provides comp
 | Component | Version | Purpose |
 |-----------|---------|---------|
 | .NET | 11.0 (preview) | Runtime framework |
-| Target Framework | net11.0-android | Android platform targeting |
+| Target Frameworks | net11.0-android, net11.0-windows | Platform targeting |
 | MAUI | 10.0.80 | Cross-platform app framework |
 | Blazor WebView | 10.0.80 | Hybrid web UI rendering |
 | MudBlazor | 9.7.0 | Material Design component library |
 | CheapHelpers.Services | 3.6.0 | Barcode services (generation, image scanning) |
-| MvvmCross.Plugin.Messenger | 9.4.0 | Message passing |
 
 ### Android Requirements
 - **Minimum SDK**: API 24 (Android 7.0)
@@ -57,7 +56,6 @@ A .NET MAUI Blazor hybrid application for Android and Windows that provides comp
 ### Permissions
 ```xml
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.VIBRATE" />
 <uses-permission android:name="android.permission.INTERNET" />
 ```
@@ -79,7 +77,10 @@ CheapBarcodes/
 │   └── _Imports.razor                 # Global using directives
 │
 ├── Services/
-│   └── HardwareScannerService.cs      # Hardware scanner service + interface
+│   ├── IHardwareScannerService.cs     # Scanner interface (Android impl under Platforms/Android)
+│   ├── NullHardwareScannerService.cs  # Desktop no-op scanner
+│   ├── ApiUploadOptions.cs            # Phone-home settings (Preferences/SecureStorage)
+│   └── ScanApiClient.cs               # Posts scans to the configured endpoint
 │
 ├── Platforms/Android/
 │   ├── MainActivity.cs                # Activity lifecycle & scanner initialization
@@ -166,7 +167,6 @@ dotnet build -c Release -f net11.0-android -t:Run
 
 ### Configuration
 The app automatically configures:
-- HttpClient with 2-minute timeout
 - MudBlazor theme provider with snackbar positioning
 - IBarcodeService singleton registration
 - Debug logging (in DEBUG builds)
@@ -199,7 +199,7 @@ The app automatically configures:
 - All scans automatically appear in "Scan History" table
 - Click copy icon to copy barcode to clipboard
 - Click "Clear History" to delete all records
-- History persists for current app session (up to 100 scans)
+- History persists across app restarts (up to 100 scans); use Export CSV to share it
 
 ## API Reference
 
