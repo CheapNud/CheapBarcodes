@@ -51,6 +51,8 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-11 → 2026-07-11) Windows desktop target — net11.0-windows TFM, scanner service split into interface + Android impl + desktop no-op, binding/native libs gated to Android (PR #4) [user]
+  - Also fixed IHardwareScannerService never being registered in DI (lost in the November migration — scanner page was broken at runtime)
 - [x] (2026-07-11 → 2026-07-11) Persist scan history + CSV export/share — history currently dies with the app session [audit]
   - Preferences + JSON of last 100 records; Export CSV button shares via the Android share sheet (PR #3)
 - [x] (2026-07-11 → 2026-07-11) Fold CheapBarcodes.Binding into this repo — was an unversioned sibling folder, briefly its own GitHub repo (now archived) [user]
