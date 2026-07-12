@@ -1,19 +1,6 @@
-﻿// File: Services/IHardwareScannerService.cs
 using Android.Media;
 using CheapBarcodes.Services;
 using A = Android; //stupid but resolves namespace conflicts
-
-namespace CheapBarcodes.Services
-{
-    public interface IHardwareScannerService
-    {
-        event EventHandler<string> HardwareBarcodeScanned;
-        void OnScan(string barcode);
-        void StartScanning();
-        void StopScanning();
-        bool IsScanning { get; }
-    }
-}
 
 namespace CheapBarcodes.Platforms.Android.Services
 {
