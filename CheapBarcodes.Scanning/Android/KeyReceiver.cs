@@ -1,26 +1,29 @@
-﻿using Android.Content;
-using Android.OS;
+using Android.Content;
 using Android.Views;
 using CN.Pda.Scan;
-using CheapBarcodes.Helpers;
 
-namespace CheapBarcodes.Platforms.Android
+namespace CheapBarcodes.Scanning
 {
-    public class KeyReceiver : BroadcastReceiver
+    internal class KeyReceiver : BroadcastReceiver
     {
-        private readonly ScanThread _scanThread;
+        private readonly ScanThread? _scanThread;
         private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1.8);
         private DateTime _lastKeyTime = DateTime.MinValue;
 
-        public KeyReceiver(ScanThread scanThread)
+        public KeyReceiver(ScanThread? scanThread)
         {
             _scanThread = scanThread;
         }
 
-        public override void OnReceive(Context context, Intent intent)
+        public override void OnReceive(Context? context, Intent? intent)
         {
             try
             {
+                if (intent == null)
+                {
+                    return;
+                }
+
                 if (DateTime.Now - _lastKeyTime < _timeout)
                 {
                     System.Diagnostics.Debug.WriteLine("Key press ignored - within timeout period");
@@ -48,27 +51,11 @@ namespace CheapBarcodes.Platforms.Android
             switch ((Keycode)keyCode)
             {
                 case Keycode.F1:
-                    System.Diagnostics.Debug.WriteLine($"{keyCode} F1 - Scan trigger");
-                    TriggerScan();
-                    break;
-
                 case Keycode.F2:
-                    System.Diagnostics.Debug.WriteLine($"{keyCode} F2 - Scan trigger");
-                    TriggerScan();
-                    break;
-
                 case Keycode.F3:
-                    System.Diagnostics.Debug.WriteLine($"{keyCode} F3 - Pistol Key");
-                    TriggerScan();
-                    break;
-
                 case Keycode.F4:
-                    System.Diagnostics.Debug.WriteLine($"{keyCode} F4 - Scan trigger");
-                    TriggerScan();
-                    break;
-
                 case Keycode.F5:
-                    System.Diagnostics.Debug.WriteLine($"{keyCode} F5 - Scan trigger");
+                    System.Diagnostics.Debug.WriteLine($"{keyCode} - Scan trigger");
                     TriggerScan();
                     break;
 
@@ -90,9 +77,8 @@ namespace CheapBarcodes.Platforms.Android
                 }
                 else
                 {
-                    // If no SerialPort scanning, send a broadcast to trigger other scanning methods
+                    // If no SerialPort scanning, the vendor broadcast path delivers the barcode instead
                     System.Diagnostics.Debug.WriteLine("No SerialPort available - hardware key pressed but no scan thread");
-                    // You could potentially trigger a camera-based scan here or other alternatives
                 }
             }
             catch (Exception ex)

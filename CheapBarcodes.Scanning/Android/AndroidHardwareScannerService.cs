@@ -1,15 +1,14 @@
 using Android.Media;
-using CheapBarcodes.Services;
 using A = Android; //stupid but resolves namespace conflicts
 
-namespace CheapBarcodes.Platforms.Android.Services
+namespace CheapBarcodes.Scanning
 {
     public class AndroidHardwareScannerService : IHardwareScannerService, IDisposable
     {
-        private MediaPlayer _mediaPlayer;
+        private MediaPlayer? _mediaPlayer;
         private bool _isScanning;
 
-        public event EventHandler<string> HardwareBarcodeScanned;
+        public event EventHandler<string> HardwareBarcodeScanned = delegate { };
         public bool IsScanning => _isScanning;
 
         public AndroidHardwareScannerService()
@@ -23,16 +22,13 @@ namespace CheapBarcodes.Platforms.Android.Services
             try
             {
                 // Try to use a system notification sound for scan confirmation
-                var context = Platform.CurrentActivity ?? A.App.Application.Context;
+                var appContext = A.App.Application.Context;
 
                 // First try to create with notification sound
-                _mediaPlayer = MediaPlayer.Create(context, A.Provider.Settings.System.DefaultNotificationUri);
+                _mediaPlayer = MediaPlayer.Create(appContext, A.Provider.Settings.System.DefaultNotificationUri);
 
                 // If that fails, try ringtone
-                if (_mediaPlayer == null)
-                {
-                    _mediaPlayer = MediaPlayer.Create(context, A.Provider.Settings.System.DefaultRingtoneUri);
-                }
+                _mediaPlayer ??= MediaPlayer.Create(appContext, A.Provider.Settings.System.DefaultRingtoneUri);
 
                 // If still null, we'll just skip sound
                 if (_mediaPlayer == null)
@@ -63,7 +59,7 @@ namespace CheapBarcodes.Platforms.Android.Services
                 ProvideHapticFeedback();
 
                 // Notify subscribers
-                HardwareBarcodeScanned?.Invoke(this, barcode);
+                HardwareBarcodeScanned.Invoke(this, barcode);
             }
             catch (Exception ex)
             {
@@ -108,23 +104,21 @@ namespace CheapBarcodes.Platforms.Android.Services
         {
             try
             {
-                var context = Platform.CurrentActivity;
-                if (context != null)
+                var appContext = A.App.Application.Context;
+
+                // Provide haptic feedback on scan
+                var vibrator = appContext.GetSystemService(A.Content.Context.VibratorService) as A.OS.Vibrator;
+                if (vibrator != null && vibrator.HasVibrator)
                 {
-                    // Provide haptic feedback on scan
-                    var vibrator = context.GetSystemService(A.Content.Context.VibratorService) as A.OS.Vibrator;
-                    if (vibrator != null && vibrator.HasVibrator)
+                    if (A.OS.Build.VERSION.SdkInt >= A.OS.BuildVersionCodes.O)
                     {
-                        if (A.OS.Build.VERSION.SdkInt >= A.OS.BuildVersionCodes.O)
-                        {
-                            vibrator.Vibrate(A.OS.VibrationEffect.CreateOneShot(100, A.OS.VibrationEffect.DefaultAmplitude));
-                        }
-                        else
-                        {
+                        vibrator.Vibrate(A.OS.VibrationEffect.CreateOneShot(100, A.OS.VibrationEffect.DefaultAmplitude));
+                    }
+                    else
+                    {
 #pragma warning disable CS0618 // Type or member is obsolete
-                            vibrator.Vibrate(100);
+                        vibrator.Vibrate(100);
 #pragma warning restore CS0618 // Type or member is obsolete
-                        }
                     }
                 }
             }

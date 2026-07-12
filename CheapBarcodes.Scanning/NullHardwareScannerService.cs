@@ -1,8 +1,8 @@
-namespace CheapBarcodes.Services
+namespace CheapBarcodes.Scanning
 {
     /// <summary>
     /// No-op scanner for platforms without RT150 hardware (e.g. Windows desktop).
-    /// Image scanning and generation still work; the hardware card just stays inactive.
+    /// OnScan still raises the event, so scans can be simulated in tests.
     /// </summary>
     public class NullHardwareScannerService : IHardwareScannerService
     {

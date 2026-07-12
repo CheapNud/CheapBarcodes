@@ -2,6 +2,8 @@
 
 A .NET MAUI Blazor hybrid application for Android and Windows that provides comprehensive barcode scanning and generation capabilities, with support for hardware barcode scanners (RT150 devices) and image-based scanning.
 
+The app doubles as the demo/test frontend for **CheapBarcodes.Scanning**, the reusable UI-agnostic RT150 scanning library in this repo — consume that package if you need hardware scanning with your own UI.
+
 ## Features
 
 ### Hardware Barcode Scanning
@@ -77,24 +79,20 @@ CheapBarcodes/
 │   └── _Imports.razor                 # Global using directives
 │
 ├── Services/
-│   ├── IHardwareScannerService.cs     # Scanner interface (Android impl under Platforms/Android)
-│   ├── NullHardwareScannerService.cs  # Desktop no-op scanner
 │   ├── ApiUploadOptions.cs            # Phone-home settings (Preferences/SecureStorage)
 │   └── ScanApiClient.cs               # Posts scans to the configured endpoint
 │
 ├── Platforms/Android/
-│   ├── MainActivity.cs                # Activity lifecycle & scanner initialization
+│   ├── MainActivity.cs                # Thin lifecycle wiring around Rt150ScannerHost
 │   ├── MainApplication.cs             # Application class
-│   ├── KeyReceiver.cs                 # BroadcastReceiver for hardware buttons
-│   ├── BarcodeReceiver.cs             # BroadcastReceiver for barcode data
 │   └── AndroidManifest.xml            # Permissions and configuration
 │
-├── Helpers/
-│   └── ScanMessage.cs                 # Message class for scan events
+├── CheapBarcodes.Scanning/            # Reusable RT150 scanning library (NuGet)
+│   ├── IHardwareScannerService.cs     # Scanner interface
+│   ├── NullHardwareScannerService.cs  # No-op for non-Android targets
+│   └── Android/                       # AndroidHardwareScannerService, Rt150ScannerHost, receivers
 │
-├── jniLibs/armeabi-v7a/
-│   ├── libdevapi.so                   # Native scanner library
-│   └── libirdaSerialPort.so           # Serial port communication library
+├── CheapBarcodes.Binding/             # CN.Pda scan.jar binding + native libs (NuGet)
 │
 ├── wwwroot/                           # Blazor static assets
 ├── Resources/                         # MAUI resources (fonts, images, icons)
@@ -124,7 +122,7 @@ Scanner.razor → ProcessScannedBarcode()
 ```
 
 ### Native Integration
-The app uses Java interop bindings (CheapBarcodes.Binding.csproj) to communicate with:
+Scanner integration lives in the reusable `CheapBarcodes.Scanning` library, which uses the Java interop bindings (CheapBarcodes.Binding) to communicate with:
 - **CN.Pda.Scan.ScanThread**: Controls scanner hardware via serial port
 - **CN.Pda.Serialport.SerialPort**: Low-level serial communication (9600 baud)
 

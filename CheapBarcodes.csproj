@@ -22,8 +22,8 @@
     <EnableDefaultCssItems>false</EnableDefaultCssItems>
     <Nullable>enable</Nullable>
 
-    <!-- The binding project lives in a subfolder; keep its sources out of this project's globs -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);CheapBarcodes.Binding/**</DefaultItemExcludes>
+    <!-- Nested library projects; keep their sources out of this project's globs -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CheapBarcodes.Binding/**;CheapBarcodes.Scanning/**</DefaultItemExcludes>
 
     <!-- Display name -->
     <ApplicationTitle>CheapBarcodes</ApplicationTitle>
@@ -71,20 +71,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="jniLibs\armeabi-v7a\libdevapi.so" />
-    <None Remove="jniLibs\armeabi-v7a\libirdaSerialPort.so" />
-  </ItemGroup>
-
-  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-    <AndroidNativeLibrary Include="jniLibs\armeabi-v7a\libdevapi.so">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="jniLibs\armeabi-v7a\libirdaSerialPort.so">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CheapHelpers.Services" Version="3.6.0" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="10.0.80" />
@@ -92,8 +78,8 @@
     <PackageReference Include="MudBlazor" Version="9.7.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-    <ProjectReference Include="CheapBarcodes.Binding\CheapBarcodes.Binding.csproj" />
+  <ItemGroup>
+    <ProjectReference Include="CheapBarcodes.Scanning\CheapBarcodes.Scanning.csproj" />
   </ItemGroup>
 
 </Project>
