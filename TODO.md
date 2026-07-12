@@ -1,6 +1,6 @@
 <!--
   TODO.md — CheapBarcodes project work tracker
-  Last updated: 2026-07-11
+  Last updated: 2026-07-12
 
   RULES FOR AI AGENTS:
   - Update the "Last updated" date above whenever you modify this file
@@ -51,6 +51,9 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-12 → 2026-07-12) Split UI from scanning core — CheapBarcodes.Scanning library (NuGet-ready, UI-agnostic, no MAUI dependency) + app demoted to demo/test frontend (PR #5) [user]
+  - Rt150ScannerHost wraps scan thread + receivers behind activity lifecycle calls; scan.jar + native libs ship inside the CheapBarcodes.Binding package
+  - Packages pack locally at 1.0.0 — publish to nuget.org still pending
 - [x] (2026-07-11 → 2026-07-11) Windows desktop target — net11.0-windows TFM, scanner service split into interface + Android impl + desktop no-op, binding/native libs gated to Android (PR #4) [user]
   - Also fixed IHardwareScannerService never being registered in DI (lost in the November migration — scanner page was broken at runtime)
 - [x] (2026-07-11 → 2026-07-11) Persist scan history + CSV export/share — history currently dies with the app session [audit]
