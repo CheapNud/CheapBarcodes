@@ -1,6 +1,6 @@
 # CheapBarcodes
 
-A .NET MAUI Blazor hybrid application for Android that provides comprehensive barcode scanning and generation capabilities, with support for hardware barcode scanners (RT150 devices) and image-based scanning.
+A .NET MAUI Blazor hybrid application for Android and Windows that provides comprehensive barcode scanning and generation capabilities, with support for hardware barcode scanners (RT150 devices) and image-based scanning.
 
 ## Features
 
@@ -297,9 +297,8 @@ The app uses multiple event patterns:
 - **Handler.Callback**: Android message passing
 
 ### Known Limitations
-1. **Single Platform**: Android-only (no iOS/Windows support)
-2. **RT150 Specific**: Hardware scanning optimized for RT150 devices
-3. **Session History**: Scan history clears when app restarts
+1. **RT150 Specific**: Hardware scanning requires RT150 devices (Android); on Windows the hardware scanner card stays inactive
+2. **No iOS/macOS**: Android and Windows only
 
 ## Contributing
 When contributing, ensure:
