@@ -1,11 +1,12 @@
-﻿using Android.Content;
+using Android.Content;
 using Android.OS;
-using CheapBarcodes.Helpers;
 
-namespace CheapBarcodes.Platforms.Android
+namespace CheapBarcodes.Scanning
 {
-    public class BarcodeReceiver : BroadcastReceiver
+    internal class BarcodeReceiver : BroadcastReceiver
     {
+        internal const int ScanMessageId = 1001;
+
         private readonly Handler _handler;
 
         public BarcodeReceiver(Handler handler)
@@ -13,7 +14,7 @@ namespace CheapBarcodes.Platforms.Android
             _handler = handler;
         }
 
-        public override void OnReceive(Context context, Intent intent)
+        public override void OnReceive(Context? context, Intent? intent)
         {
             if (intent?.Extras == null)
             {
@@ -34,9 +35,8 @@ namespace CheapBarcodes.Platforms.Android
             Bundle bundle = intent.Extras;
             bundle.PutString("data", barcode);
 
-            // Create message using modern pattern
             Message msg = Message.Obtain();
-            msg.What = ScanMessage.Scan;
+            msg.What = ScanMessageId;
             msg.Data = bundle;
 
             _handler.SendMessage(msg);

@@ -1,4 +1,5 @@
-﻿using CheapBarcodes.Services;
+﻿using CheapBarcodes.Scanning;
+using CheapBarcodes.Services;
 using CheapHelpers.Services;
 using CheapHelpers.Services.Communication.Barcode;
 using Microsoft.Extensions.Logging;
@@ -38,9 +39,9 @@ namespace CheapBarcodes
             // Add barcode service dependencies
             builder.Services.AddSingleton<IBarcodeService, BarcodeService>();
 
-            // Hardware scanner: real implementation on Android, no-op elsewhere
+            // Hardware scanner (CheapBarcodes.Scanning): real implementation on Android, no-op elsewhere
 #if ANDROID
-            builder.Services.AddSingleton<IHardwareScannerService, Platforms.Android.Services.AndroidHardwareScannerService>();
+            builder.Services.AddSingleton<IHardwareScannerService, AndroidHardwareScannerService>();
 #else
             builder.Services.AddSingleton<IHardwareScannerService, NullHardwareScannerService>();
 #endif

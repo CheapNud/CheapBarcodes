@@ -1,4 +1,4 @@
-namespace CheapBarcodes.Services
+namespace CheapBarcodes.Scanning
 {
     public interface IHardwareScannerService
     {
