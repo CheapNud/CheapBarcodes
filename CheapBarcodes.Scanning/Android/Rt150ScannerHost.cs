@@ -123,13 +123,17 @@ namespace CheapBarcodes.Scanning
                 ScanThread.Port = SerialPort.Com0;
                 ScanThread.Power = SerialPort.PowerScaner;
 
-                _scanThread ??= new ScanThread(_handler);
+                // The scan thread survives Stop() and a Java thread can only be
+                // started once - create and start it on the first Start() only
+                if (_scanThread == null)
+                {
+                    _scanThread = new ScanThread(_handler);
+                    _scanThread.Start();
+                }
 
-                // Register key receiver for hardware buttons
+                // Receivers are re-created on every lifecycle cycle
                 _keyReceiver = new KeyReceiver(_scanThread);
                 RegisterVendorReceiver(_keyReceiver, FunctionKeyAction);
-
-                _scanThread.Start();
                 return true;
             }
             catch (Exception ex)
@@ -164,7 +168,8 @@ namespace CheapBarcodes.Scanning
             var filter = new IntentFilter();
             filter.AddAction(action);
 
-            // API 34+ requires an export flag for non-system broadcasts; these come
+            // API 34+ throws without an export flag on non-system broadcasts; the
+            // flags overload exists since API 26, so apply it broadly. These come
             // from vendor scanner firmware (another process), so they must be exported
             if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
             {
