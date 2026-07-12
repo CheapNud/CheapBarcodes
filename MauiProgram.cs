@@ -38,6 +38,13 @@ namespace CheapBarcodes
             // Add barcode service dependencies
             builder.Services.AddSingleton<IBarcodeService, BarcodeService>();
 
+            // Hardware scanner: real implementation on Android, no-op elsewhere
+#if ANDROID
+            builder.Services.AddSingleton<IHardwareScannerService, Platforms.Android.Services.AndroidHardwareScannerService>();
+#else
+            builder.Services.AddSingleton<IHardwareScannerService, NullHardwareScannerService>();
+#endif
+
             // Configurable scan phone-home (see ApiSettings page)
             builder.Services.AddSingleton<ScanApiClient>();
 

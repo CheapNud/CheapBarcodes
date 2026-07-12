@@ -21,7 +21,7 @@ namespace CheapBarcodes.Platforms.Android
                 return;
             }
 
-            string barcode = intent.Extras.GetString("DATA");
+            string? barcode = intent.Extras.GetString("DATA");
             if (barcode == null)
             {
                 System.Diagnostics.Debug.WriteLine("BarcodeReceiver received null barcode.");
