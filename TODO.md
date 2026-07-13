@@ -32,6 +32,10 @@ _Nothing blocking._
 
 ## Planned
 
+- [ ] (2026-07-13) Keyboard-wedge (HID) scanner support in CheapBarcodes.Scanning — many budget handhelds present as USB/Bluetooth keyboards instead of serial/intent [user]
+  - KeyboardWedgeScannerHost: activity forwards DispatchKeyEvent, burst-timing heuristic separates scanner bursts from human typing, Enter (or configurable suffix) terminates → same BarcodeScanned event
+  - Feeds the existing IHardwareScannerService pipeline, so consumers don't care which transport delivered the scan
+  - Testable without scanner hardware: fast paste/typing on the Windows demo build simulates a wedge burst
 - [ ] (2026-07-11) PRIORITY: OAuth add-on for API phone-home — client-credentials token flow on top of the settings page [user]
   - Settings additions: token endpoint, client id, client secret (SecureStorage, not Preferences), scope; acquire + cache token, refresh on 401
   - Builds on the phone-home item above — plain header auth stays the default, OAuth activates when a token endpoint is configured
