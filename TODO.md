@@ -32,10 +32,6 @@ _Nothing blocking._
 
 ## Planned
 
-- [ ] (2026-07-13) Keyboard-wedge (HID) scanner support in CheapBarcodes.Scanning — many budget handhelds present as USB/Bluetooth keyboards instead of serial/intent [user]
-  - KeyboardWedgeScannerHost: activity forwards DispatchKeyEvent, burst-timing heuristic separates scanner bursts from human typing, Enter (or configurable suffix) terminates → same BarcodeScanned event
-  - Feeds the existing IHardwareScannerService pipeline, so consumers don't care which transport delivered the scan
-  - Testable without scanner hardware: fast paste/typing on the Windows demo build simulates a wedge burst
 - [ ] (2026-07-11) PRIORITY: OAuth add-on for API phone-home — client-credentials token flow on top of the settings page [user]
   - Settings additions: token endpoint, client id, client secret (SecureStorage, not Preferences), scope; acquire + cache token, refresh on 401
   - Builds on the phone-home item above — plain header auth stays the default, OAuth activates when a token endpoint is configured
@@ -55,6 +51,11 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-13 → 2026-07-13) Keyboard-wedge (HID) scanner support in CheapBarcodes.Scanning — many budget handhelds present as USB/Bluetooth keyboards instead of serial/intent [user]
+  - KeyboardWedgeScannerHost: activity forwards DispatchKeyEvent, burst-timing heuristic separates scanner bursts from human typing, Enter (or configurable suffix) terminates → same BarcodeScanned event
+  - Feeds the existing IHardwareScannerService pipeline, so consumers don't care which transport delivered the scan
+  - Testable without scanner hardware: fast paste/typing on the Windows demo build simulates a wedge burst
+  - Shipped in CheapBarcodes.Scanning 1.1.0 (PR #7): KeyboardWedgeDetector + Android DispatchKeyEvent adapter + demo wedge input field (Enter/Tab terminated)
 - [x] (2026-07-12 → 2026-07-12) Split UI from scanning core — CheapBarcodes.Scanning library (NuGet-ready, UI-agnostic, no MAUI dependency) + app demoted to demo/test frontend (PR #5) [user]
   - Rt150ScannerHost wraps scan thread + receivers behind activity lifecycle calls; scan.jar + native libs ship inside the CheapBarcodes.Binding package
   - Published 1.0.0 to nuget.org via tag-triggered nuget-publish.yml (tag v1.0.0)
