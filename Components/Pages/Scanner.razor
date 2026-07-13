@@ -6,6 +6,7 @@
 @using CheapHelpers.Services.Communication.Barcode
 @inject IBarcodeService BarcodeService
 @inject IHardwareScannerService HardwareScannerService
+@inject KeyboardWedgeDetector WedgeDetector
 @inject ScanApiClient ScanApi
 @implements IDisposable
 
@@ -52,6 +53,14 @@
                                 Stop
                             </MudButton>
                         </MudStack>
+
+                        <MudTextField T="string"
+                                      @bind-Value="wedgeInput"
+                                      Immediate="true"
+                                      Label="USB / keyboard scanner"
+                                      HelperText="Focus this field and scan - any scanner that types like a keyboard works"
+                                      Variant="Variant.Outlined"
+                                      OnKeyDown="OnWedgeKeyDown" />
                     </MudStack>
                 </MudCardContent>
             </MudCard>
@@ -422,6 +431,21 @@
     }
 
     private static string CsvField(string rawValue) => $"\"{rawValue.Replace("\"", "\"\"")}\"";
+
+    private string wedgeInput = "";
+
+    private void OnWedgeKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or "Tab")
+        {
+            WedgeDetector.ProcessTerminator();
+            wedgeInput = "";
+        }
+        else if (e.Key.Length == 1)
+        {
+            WedgeDetector.ProcessCharacter(e.Key[0]);
+        }
+    }
 
     private void StartHardwareScanning()
     {

@@ -13,6 +13,7 @@ namespace CheapBarcodes.Platforms.Android
     {
         private Rt150ScannerHost? _scannerHost;
         private IHardwareScannerService? _hardwareScannerService;
+        private KeyboardWedgeDetector? _wedgeDetector;
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
@@ -45,6 +46,14 @@ namespace CheapBarcodes.Platforms.Android
             _scannerHost?.Dispose();
             _hardwareScannerService?.StopScanning();
             base.OnDestroy();
+        }
+
+        public override bool DispatchKeyEvent(global::Android.Views.KeyEvent? e)
+        {
+            // Observe keys for wedge (USB/Bluetooth keyboard) scanners; never consume
+            _wedgeDetector ??= IPlatformApplication.Current?.Services?.GetService<KeyboardWedgeDetector>();
+            _wedgeDetector?.ProcessKeyEvent(e);
+            return base.DispatchKeyEvent(e);
         }
 
         private void OnBarcodeScanned(string barcode)
