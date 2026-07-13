@@ -67,7 +67,9 @@ namespace CheapBarcodes.Scanning
         }
 
         /// <summary>
-        /// Unregisters receivers. The scan thread keeps its serial port until Dispose.
+        /// Unregisters receivers and tears down the scan thread. Closing the serial
+        /// port powers the scanner hardware down while the app is backgrounded
+        /// (PowerScaner); Start() rebuilds everything.
         /// </summary>
         public void Stop()
         {
@@ -91,15 +93,6 @@ namespace CheapBarcodes.Scanning
             {
                 System.Diagnostics.Debug.WriteLine($"Error stopping Rt150ScannerHost: {ex.Message}");
             }
-            finally
-            {
-                _isStarted = false;
-            }
-        }
-
-        public void Dispose()
-        {
-            Stop();
 
             try
             {
@@ -110,8 +103,17 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error disposing Rt150ScannerHost: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error closing scan thread: {ex.Message}");
             }
+            finally
+            {
+                _isStarted = false;
+            }
+        }
+
+        public void Dispose()
+        {
+            Stop();
         }
 
         private bool TryInitializeSerialPortScanning()
@@ -123,17 +125,14 @@ namespace CheapBarcodes.Scanning
                 ScanThread.Port = SerialPort.Com0;
                 ScanThread.Power = SerialPort.PowerScaner;
 
-                // The scan thread survives Stop() and a Java thread can only be
-                // started once - create and start it on the first Start() only
-                if (_scanThread == null)
-                {
-                    _scanThread = new ScanThread(_handler);
-                    _scanThread.Start();
-                }
+                // A fresh thread every cycle - Stop() fully tears it down, and the
+                // vendor thread cannot be restarted once closed
+                _scanThread = new ScanThread(_handler);
 
-                // Receivers are re-created on every lifecycle cycle
                 _keyReceiver = new KeyReceiver(_scanThread);
                 RegisterVendorReceiver(_keyReceiver, FunctionKeyAction);
+
+                _scanThread.Start();
                 return true;
             }
             catch (Exception ex)
@@ -185,6 +184,12 @@ namespace CheapBarcodes.Scanning
         {
             try
             {
+                // The vendor scan thread can post other message types on this handler
+                if (message.What != BarcodeReceiver.ScanMessageId)
+                {
+                    return;
+                }
+
                 string? barcode = message.Data?.GetString("data");
                 if (string.IsNullOrEmpty(barcode))
                 {
