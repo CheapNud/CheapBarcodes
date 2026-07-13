@@ -436,7 +436,7 @@
 
     private void OnWedgeKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter")
+        if (e.Key is "Enter" or "Tab")
         {
             WedgeDetector.ProcessTerminator();
             wedgeInput = "";
