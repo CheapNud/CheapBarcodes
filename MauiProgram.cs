@@ -46,6 +46,15 @@ namespace CheapBarcodes
             builder.Services.AddSingleton<IHardwareScannerService, NullHardwareScannerService>();
 #endif
 
+            // Keyboard-wedge (USB/Bluetooth HID) scanners feed the same scan pipeline
+            builder.Services.AddSingleton(serviceProvider =>
+            {
+                var wedgeDetector = new KeyboardWedgeDetector();
+                wedgeDetector.BarcodeScanned += barcode =>
+                    serviceProvider.GetService<IHardwareScannerService>()?.OnScan(barcode);
+                return wedgeDetector;
+            });
+
             // Configurable scan phone-home (see ApiSettings page)
             builder.Services.AddSingleton<ScanApiClient>();
 

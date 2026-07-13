@@ -4,6 +4,7 @@ RT150 handheld barcode scanner integration for Android, UI-agnostic. Wraps the C
 
 - `IHardwareScannerService` / `AndroidHardwareScannerService` — scan event stream with beep + vibration feedback (`NullHardwareScannerService` for non-Android targets).
 - `Rt150ScannerHost` — activity-lifecycle host for the scan thread and receivers.
+- `KeyboardWedgeDetector` — platform-neutral detector for USB/Bluetooth HID scanners that type like keyboards (fast burst + Enter). Works on any platform, including desktop workstations.
 
 ## Usage
 
@@ -40,6 +41,31 @@ protected override void OnDestroy() { _scannerHost.Dispose(); base.OnDestroy(); 
 ```
 
 Then consume scans anywhere via `IHardwareScannerService.HardwareBarcodeScanned`.
+
+## Keyboard-wedge (HID) scanners
+
+Most budget USB and Bluetooth scanners present as keyboards. Register a `KeyboardWedgeDetector`, route its scans into the same pipeline, and feed it key events:
+
+```csharp
+builder.Services.AddSingleton(sp =>
+{
+    var detector = new KeyboardWedgeDetector();   // MaxInterKeyGap / MinBarcodeLength are tunable
+    detector.BarcodeScanned += code => sp.GetService<IHardwareScannerService>()?.OnScan(code);
+    return detector;
+});
+```
+
+On Android, observe keys at activity level (works regardless of UI focus):
+
+```csharp
+public override bool DispatchKeyEvent(KeyEvent e)
+{
+    _detector?.ProcessKeyEvent(e);   // extension method, never consumes the event
+    return base.DispatchKeyEvent(e);
+}
+```
+
+On other platforms, feed `ProcessCharacter(char)` / `ProcessTerminator()` from whatever key source the UI has (e.g. a focused input's keydown events). Human typing is filtered out by burst timing.
 
 The RT150's native libraries (`libdevapi.so`, `libirdaSerialPort.so`, armeabi-v7a) and `scan.jar` ship via the CheapBarcodes.Binding dependency — no manual jniLibs setup needed.
 
