@@ -8,7 +8,7 @@ namespace CheapBarcodes.Scanning
         private MediaPlayer? _mediaPlayer;
         private bool _isScanning;
 
-        public event EventHandler<string> HardwareBarcodeScanned = delegate { };
+        public event Action<ScanResult> ScanReceived = delegate { };
         public bool IsScanning => _isScanning;
 
         public AndroidHardwareScannerService()
@@ -43,14 +43,14 @@ namespace CheapBarcodes.Scanning
             }
         }
 
-        public void OnScan(string barcode)
+        public void OnScan(ScanResult scan)
         {
-            if (string.IsNullOrEmpty(barcode))
+            if (string.IsNullOrEmpty(scan?.Barcode))
                 return;
 
             try
             {
-                System.Diagnostics.Debug.WriteLine($"Hardware barcode scanned: {barcode}");
+                System.Diagnostics.Debug.WriteLine($"Barcode scanned ({scan.Source}): {scan.Barcode}");
 
                 // Play sound notification (Android-specific feature)
                 PlayScanSound();
@@ -59,7 +59,7 @@ namespace CheapBarcodes.Scanning
                 ProvideHapticFeedback();
 
                 // Notify subscribers
-                HardwareBarcodeScanned.Invoke(this, barcode);
+                ScanReceived.Invoke(scan);
             }
             catch (Exception ex)
             {

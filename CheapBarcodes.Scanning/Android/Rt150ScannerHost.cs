@@ -24,7 +24,7 @@ namespace CheapBarcodes.Scanning
         private BroadcastReceiver? _keyReceiver;
         private bool _isStarted;
 
-        public event Action<string>? BarcodeScanned;
+        public event Action<ScanResult>? ScanReceived;
 
         public Rt150ScannerHost(Activity activity)
         {
@@ -197,8 +197,12 @@ namespace CheapBarcodes.Scanning
                     return;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Rt150ScannerHost received barcode: {barcode}");
-                BarcodeScanned?.Invoke(barcode);
+                var scanSource = message.Data?.GetString("transport") == "broadcast"
+                    ? ScanSource.Broadcast
+                    : ScanSource.SerialPort;
+
+                System.Diagnostics.Debug.WriteLine($"Rt150ScannerHost received barcode ({scanSource}): {barcode}");
+                ScanReceived?.Invoke(new ScanResult(barcode, scanSource));
             }
             catch (Exception ex)
             {

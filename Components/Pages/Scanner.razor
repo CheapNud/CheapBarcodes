@@ -305,17 +305,17 @@
         scanHistory = LoadHistory();
 
         // Subscribe to both hardware and image-based barcode events
-        HardwareScannerService.HardwareBarcodeScanned += OnHardwareBarcodeScanned;
+        HardwareScannerService.ScanReceived += OnScanReceived;
         BarcodeService.BarcodeScanned += OnImageBarcodeScanned;
     }
 
-    // Handle hardware scanner events
-    private async void OnHardwareBarcodeScanned(object sender, string barcode)
+    // Handle scans from any hardware transport (serial, broadcast, keyboard wedge)
+    private async void OnScanReceived(ScanResult scan)
     {
         await InvokeAsync(() =>
         {
-            // The vendor intent carries no format information
-            ProcessScannedBarcode(barcode, "Unknown", "Hardware");
+            // The scanner transports carry no format information
+            ProcessScannedBarcode(scan.Barcode, "Unknown", scan.Source.ToString());
         });
     }
 
@@ -545,7 +545,7 @@
     {
         if (HardwareScannerService != null)
         {
-            HardwareScannerService.HardwareBarcodeScanned -= OnHardwareBarcodeScanned;
+            HardwareScannerService.ScanReceived -= OnScanReceived;
         }
 
         if (BarcodeService != null)
