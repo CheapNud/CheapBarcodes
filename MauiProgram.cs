@@ -55,8 +55,9 @@ namespace CheapBarcodes
                 return wedgeDetector;
             });
 
-            // Configurable scan phone-home (see ApiSettings page)
+            // Configurable scan phone-home (see ApiSettings page) with offline retry queue
             builder.Services.AddSingleton<ScanApiClient>();
+            builder.Services.AddSingleton<ScanUploadQueue>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
