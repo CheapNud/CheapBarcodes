@@ -2,8 +2,8 @@ namespace CheapBarcodes.Scanning
 {
     public interface IHardwareScannerService
     {
-        event EventHandler<string> HardwareBarcodeScanned;
-        void OnScan(string barcode);
+        event Action<ScanResult> ScanReceived;
+        void OnScan(ScanResult scan);
         void StartScanning();
         void StopScanning();
         bool IsScanning { get; }

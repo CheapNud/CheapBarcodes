@@ -20,7 +20,7 @@ namespace CheapBarcodes.Platforms.Android
             base.OnCreate(savedInstanceState);
 
             _scannerHost = new Rt150ScannerHost(this);
-            _scannerHost.BarcodeScanned += OnBarcodeScanned;
+            _scannerHost.ScanReceived += OnScanReceived;
         }
 
         protected override void OnStart()
@@ -56,7 +56,7 @@ namespace CheapBarcodes.Platforms.Android
             return base.DispatchKeyEvent(e);
         }
 
-        private void OnBarcodeScanned(string barcode)
+        private void OnScanReceived(ScanResult scan)
         {
             // Resolve lazily - MAUI DI is guaranteed up by the time a scan arrives
             if (_hardwareScannerService == null)
@@ -65,7 +65,7 @@ namespace CheapBarcodes.Platforms.Android
                 _hardwareScannerService?.StartScanning();
             }
 
-            _hardwareScannerService?.OnScan(barcode);
+            _hardwareScannerService?.OnScan(scan);
         }
     }
 }

@@ -31,9 +31,11 @@ namespace CheapBarcodes.Scanning
 
             System.Diagnostics.Debug.WriteLine($"BarcodeReceiver received barcode: {barcode}");
 
-            // Convert bundle to use the same data param
+            // Convert bundle to use the same data param; mark the transport so the
+            // host can distinguish broadcast scans from serial scan-thread messages
             Bundle bundle = intent.Extras;
             bundle.PutString("data", barcode);
+            bundle.PutString("transport", "broadcast");
 
             Message msg = Message.Obtain();
             msg.What = ScanMessageId;

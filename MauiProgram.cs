@@ -51,7 +51,7 @@ namespace CheapBarcodes
             {
                 var wedgeDetector = new KeyboardWedgeDetector();
                 wedgeDetector.BarcodeScanned += barcode =>
-                    serviceProvider.GetService<IHardwareScannerService>()?.OnScan(barcode);
+                    serviceProvider.GetService<IHardwareScannerService>()?.OnScan(new ScanResult(barcode, ScanSource.KeyboardWedge));
                 return wedgeDetector;
             });
 
