@@ -35,9 +35,6 @@ _Nothing blocking._
 - [ ] (2026-07-16) GS1 parser + GTIN/EAN validation in CheapBarcodes.Scanning — decompose GS1-128 AIs (GTIN, batch, expiry, serial, count...) incl. FNC1 separators; check-digit validation + GTIN-14 normalization [user]
   - Pure net11.0 string logic, usable server-side (furniture ERP: GTIN/EAN product matching, custom codes detected by GS1-validation failing fast)
   - Pairs with a small test project — check digits and AI tables are prime unit-test material
-- [ ] (2026-07-11) PRIORITY: OAuth add-on for API phone-home — client-credentials token flow on top of the settings page [user]
-  - Settings additions: token endpoint, client id, client secret (SecureStorage, not Preferences), scope; acquire + cache token, refresh on 401
-  - Builds on the phone-home item above — plain header auth stays the default, OAuth activates when a token endpoint is configured
 - [ ] (2026-07-11) Distinct error sound — second MediaPlayer buzz for failures (no barcode found, API post failed) [audit]
 - [ ] (2026-07-11) Show app version on Home via VersionTracking.CurrentVersion [audit]
 
@@ -45,12 +42,13 @@ _Nothing blocking._
 
 - [ ] (2026-07-11) WakeLock during scanning — deferred: device display-timeout config covered this for years in production; revisit only if RT150 testing shows serial drops when the screen dims [audit]
 - [ ] (2026-07-11) Camera-based scanning mode so the app works on ordinary phones, not just RT150 (BarcodeScanning.Native.Maui or ZXing camera view) [audit]
-- [ ] (2026-07-11) Offline queue for API phone-home — batch-accumulate scans locally and upload on reconnect (legacy CutSort/Cover pattern, but persisted) [audit]
 - [ ] (2026-07-11) Barcode format picker + QR support in the generator — service defaults to CODE_39, ZXing already encodes the rest [audit]
 - [ ] (2026-07-11) Crash telemetry via Sentry MAUI SDK (AppCenter is retired) — optional, evaluate need first [audit]
 
 ## Done
 
+- [x] (2026-07-11 → 2026-07-16) OAuth add-on for API phone-home — client-credentials with SecureStorage secret, cached token, refresh-on-401; activates when a token endpoint is set (PR #9) [user]
+- [x] (2026-07-11 → 2026-07-16) Offline queue for API phone-home — bounded Preferences queue, drains in order before new posts / on reconnect / via settings retry button (PR #9) [audit]
 - [x] (2026-07-11 → 2026-07-16) Duplicate-scan guard — DROPPED: scanner hardware config (same-code re-read delay) covers this; no code needed [user]
 - [x] (2026-07-16 → 2026-07-16) Scanning 2.0.0: ScanResult event payload (barcode/transport/timestamp) + IntentScannerHost for DataWedge/Honeywell-style broadcast scanners (PR #8) [user]
   - Breaking event-shape change done deliberately before external consumers exist; demo history Source column now shows the real transport
