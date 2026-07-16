@@ -1,6 +1,6 @@
 <!--
   TODO.md — CheapBarcodes project work tracker
-  Last updated: 2026-07-12
+  Last updated: 2026-07-16
 
   RULES FOR AI AGENTS:
   - Update the "Last updated" date above whenever you modify this file
@@ -51,6 +51,8 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-16 → 2026-07-16) Scanning 2.0.0: ScanResult event payload (barcode/transport/timestamp) + IntentScannerHost for DataWedge/Honeywell-style broadcast scanners (PR #8) [user]
+  - Breaking event-shape change done deliberately before external consumers exist; demo history Source column now shows the real transport
 - [x] (2026-07-13 → 2026-07-13) Keyboard-wedge (HID) scanner support in CheapBarcodes.Scanning — many budget handhelds present as USB/Bluetooth keyboards instead of serial/intent [user]
   - KeyboardWedgeScannerHost: activity forwards DispatchKeyEvent, burst-timing heuristic separates scanner bursts from human typing, Enter (or configurable suffix) terminates → same BarcodeScanned event
   - Feeds the existing IHardwareScannerService pipeline, so consumers don't care which transport delivered the scan
