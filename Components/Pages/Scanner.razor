@@ -7,7 +7,7 @@
 @inject IBarcodeService BarcodeService
 @inject IHardwareScannerService HardwareScannerService
 @inject KeyboardWedgeDetector WedgeDetector
-@inject ScanApiClient ScanApi
+@inject ScanUploadQueue UploadQueue
 @implements IDisposable
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
@@ -354,7 +354,18 @@
                 return;
             }
 
-            await ScanApi.PostScanAsync(uploadOptions, barcode, format, source, timestamp);
+            var (posted, pending) = await UploadQueue.PostOrEnqueueAsync(uploadOptions, new QueuedScan
+            {
+                Barcode = barcode,
+                Format = format,
+                Source = source,
+                Timestamp = timestamp
+            });
+
+            if (!posted)
+            {
+                await InvokeAsync(() => ToastService.Add($"API unreachable - scan queued ({pending} pending)", Severity.Warning));
+            }
         }
         catch (Exception ex)
         {
