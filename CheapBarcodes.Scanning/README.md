@@ -1,6 +1,6 @@
 # CheapBarcodes.Scanning
 
-RT150 handheld barcode scanner integration for Android, UI-agnostic. Wraps the CN.Pda serial-port SDK (via CheapBarcodes.Binding) plus the vendor broadcast fallback behind two small types:
+UI-agnostic barcode scanning toolkit for .NET: every common scanner transport behind one `ScanResult` stream, plus GS1/GTIN parsing that also runs server-side. Bring your own frontend:
 
 - `IHardwareScannerService` / `AndroidHardwareScannerService` — `ScanReceived` event stream of `ScanResult` (barcode + transport + timestamp) with beep + vibration feedback (`NullHardwareScannerService` for non-Android targets).
 - `Rt150ScannerHost` — activity-lifecycle host for the RT150 scan thread and receivers.

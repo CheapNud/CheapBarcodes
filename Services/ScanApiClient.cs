@@ -24,7 +24,7 @@ namespace CheapBarcodes.Services
         private string? _cachedToken;
         private DateTime _tokenExpiresAt = DateTime.MinValue;
 
-        public async Task PostScanAsync(ApiUploadOptions uploadOptions, string barcode, string barcodeFormat, string scanSource, DateTime timestamp, CancellationToken cancellationToken = default)
+        public async Task PostScanAsync(ApiUploadOptions uploadOptions, string barcode, string barcodeFormat, string scanSource, DateTimeOffset timestamp, CancellationToken cancellationToken = default)
         {
             if (!uploadOptions.IsConfigured)
             {
