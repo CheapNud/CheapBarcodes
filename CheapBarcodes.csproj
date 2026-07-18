@@ -23,7 +23,7 @@
     <Nullable>enable</Nullable>
 
     <!-- Nested library projects; keep their sources out of this project's globs -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);CheapBarcodes.Binding/**;CheapBarcodes.Scanning/**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);CheapBarcodes.Binding/**;CheapBarcodes.Scanning/**;CheapBarcodes.Scanning.Tests/**</DefaultItemExcludes>
 
     <!-- Display name -->
     <ApplicationTitle>CheapBarcodes</ApplicationTitle>

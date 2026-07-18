@@ -6,6 +6,7 @@ RT150 handheld barcode scanner integration for Android, UI-agnostic. Wraps the C
 - `Rt150ScannerHost` — activity-lifecycle host for the RT150 scan thread and receivers.
 - `IntentScannerHost` — generic broadcast-intent host for DataWedge/Honeywell-style devices: configure the action and extra key, get the same `ScanResult` stream.
 - `KeyboardWedgeDetector` — platform-neutral detector for USB/Bluetooth HID scanners that type like keyboards (fast burst + Enter). Works on any platform, including desktop workstations.
+- `Gs1Parser` / `Gtin` — pure string logic (no Android needed): GS1-128/DataMatrix element strings decomposed into application identifiers, and GTIN/EAN/UPC check-digit validation + GTIN-14 normalization.
 
 ## Usage
 
@@ -80,6 +81,28 @@ public override bool DispatchKeyEvent(KeyEvent e)
 ```
 
 On other platforms, feed `ProcessCharacter(char)` / `ProcessTerminator()` from whatever key source the UI has (e.g. a focused input's keydown events). Human typing is filtered out by burst timing.
+
+## GS1 / GTIN helpers
+
+Server-side friendly (plain `net11.0`) — useful anywhere product barcodes are matched:
+
+```csharp
+// GS1-128 element strings: (01) GTIN, (10) batch, (17) expiry, (21) serial...
+if (Gs1Parser.TryParse(scan.Barcode, out var gs1))
+{
+    var gtin = gs1.Gtin;              // "04006381333931"
+    var expiry = gs1.ExpiryDate;      // DateOnly, end-of-month and century rules applied
+    var batch = gs1.BatchOrLot;
+}
+
+// Plain EAN/UPC/GTIN product codes
+if (Gtin.TryNormalize(scan.Barcode, out var gtin14))
+{
+    // check digit verified; EAN-13/UPC-A/GTIN-14 variants all normalize to the same key
+}
+```
+
+FNC1/GS separators (ASCII 29) and symbology prefixes (`]C1`, `]d2`, ...) are handled. The AI table covers the common warehouse set; codes with unknown AIs fail parsing rather than guessing. A scan that fails both helpers is a custom/internal code.
 
 The RT150's native libraries (`libdevapi.so`, `libirdaSerialPort.so`, armeabi-v7a) and `scan.jar` ship via the CheapBarcodes.Binding dependency — no manual jniLibs setup needed.
 
