@@ -1,6 +1,6 @@
 <!--
   TODO.md — CheapBarcodes project work tracker
-  Last updated: 2026-07-16
+  Last updated: 2026-07-18
 
   RULES FOR AI AGENTS:
   - Update the "Last updated" date above whenever you modify this file
@@ -32,9 +32,6 @@ _Nothing blocking._
 
 ## Planned
 
-- [ ] (2026-07-16) GS1 parser + GTIN/EAN validation in CheapBarcodes.Scanning — decompose GS1-128 AIs (GTIN, batch, expiry, serial, count...) incl. FNC1 separators; check-digit validation + GTIN-14 normalization [user]
-  - Pure net11.0 string logic, usable server-side (furniture ERP: GTIN/EAN product matching, custom codes detected by GS1-validation failing fast)
-  - Pairs with a small test project — check digits and AI tables are prime unit-test material
 - [ ] (2026-07-11) Distinct error sound — second MediaPlayer buzz for failures (no barcode found, API post failed) [audit]
 - [ ] (2026-07-11) Show app version on Home via VersionTracking.CurrentVersion [audit]
 
@@ -47,6 +44,8 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-16 → 2026-07-18) GS1 parser + GTIN/EAN validation in CheapBarcodes.Scanning 2.1.0 — Gs1Parser/Gs1Barcode/Gtin, 27 xunit tests gating the publish workflow, GS1 chips on the demo scan card (PR #10) [user]
+  - Known GS1 ambiguity: element strings aren't self-identifying, a plain EAN starting with a valid AI parses as GS1 — symbology prefix is the reliable discriminator
 - [x] (2026-07-11 → 2026-07-16) OAuth add-on for API phone-home — client-credentials with SecureStorage secret, cached token, refresh-on-401; activates when a token endpoint is set (PR #9) [user]
 - [x] (2026-07-11 → 2026-07-16) Offline queue for API phone-home — bounded Preferences queue, drains in order before new posts / on reconnect / via settings retry button (PR #9) [audit]
 - [x] (2026-07-11 → 2026-07-16) Duplicate-scan guard — DROPPED: scanner hardware config (same-code re-read delay) covers this; no code needed [user]
