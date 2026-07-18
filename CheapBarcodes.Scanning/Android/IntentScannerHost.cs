@@ -1,5 +1,6 @@
 using Android.Content;
 using Android.OS;
+using Microsoft.Extensions.Logging;
 
 namespace CheapBarcodes.Scanning
 {
@@ -25,6 +26,9 @@ namespace CheapBarcodes.Scanning
         }
 
         public event Action<ScanResult>? ScanReceived;
+
+        /// <summary>Optional logger; without one the host is silent.</summary>
+        public ILogger? Logger { get; init; }
 
         public bool IsStarted { get; private set; }
 
@@ -60,7 +64,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error starting IntentScannerHost: {ex.Message}");
+                Logger?.LogError(ex, "Error starting IntentScannerHost");
             }
         }
 
@@ -77,7 +81,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error stopping IntentScannerHost: {ex.Message}");
+                Logger?.LogError(ex, "Error stopping IntentScannerHost");
             }
             finally
             {
@@ -114,7 +118,7 @@ namespace CheapBarcodes.Scanning
                     ? intent.GetStringExtra(scannerProfile.FormatExtraKey)
                     : null;
 
-                System.Diagnostics.Debug.WriteLine($"IntentScannerHost received barcode ({intent.Action}): {barcode}");
+                Logger?.LogDebug("IntentScannerHost received barcode ({Action}): {Barcode}", intent.Action, barcode);
                 ScanReceived?.Invoke(new ScanResult(barcode, ScanSource.Broadcast, barcodeFormat));
                 return;
             }

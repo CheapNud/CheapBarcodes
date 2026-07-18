@@ -114,6 +114,10 @@ if (Gtin.TryNormalize(scan.Barcode, out var gtin14))
 
 FNC1/GS separators (ASCII 29) and symbology prefixes (`]C1`, `]d2`, ...) are handled. The AI table covers the common warehouse set; codes with unknown AIs fail parsing rather than guessing. A scan that fails both helpers is a custom/internal code.
 
+## Logging
+
+All hosts and the Android service accept an optional `Microsoft.Extensions.Logging.ILogger` (hosts via the `Logger` init property, the service via constructor injection) - without one the library is silent, including in Release builds. Wire whatever sink stack your app uses; the demo app ships Serilog with a rolling local file plus an optional Seq server.
+
 The RT150's native libraries (`libdevapi.so`, `libirdaSerialPort.so`, armeabi-v7a) and `scan.jar` ship via the CheapBarcodes.Binding dependency — no manual jniLibs setup needed.
 
 See the [CheapBarcodes](https://github.com/CheapNud/CheapBarcodes) demo app for a working MAUI Blazor frontend.
