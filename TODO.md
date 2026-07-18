@@ -48,6 +48,8 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-18 → 2026-07-18) Profile-based intent scanning in Scanning 2.2.0 — multi-vendor IntentScannerProfile (multi-action, string+byte[] extras with encoding, format extra), Context instead of Activity, ScanResult.Format (PR #11) [user]
+  - Rt150 + Urovo presets shipped; DataWedge documented as example (action is device-config, no honest hardcodable default)
 - [x] (2026-07-16 → 2026-07-18) GS1 parser + GTIN/EAN validation in CheapBarcodes.Scanning 2.1.0 — Gs1Parser/Gs1Barcode/Gtin, 27 xunit tests gating the publish workflow, GS1 chips on the demo scan card (PR #10) [user]
   - Known GS1 ambiguity: element strings aren't self-identifying, a plain EAN starting with a valid AI parses as GS1 — symbology prefix is the reliable discriminator
 - [x] (2026-07-11 → 2026-07-16) OAuth add-on for API phone-home — client-credentials with SecureStorage secret, cached token, refresh-on-401; activates when a token endpoint is set (PR #9) [user]
