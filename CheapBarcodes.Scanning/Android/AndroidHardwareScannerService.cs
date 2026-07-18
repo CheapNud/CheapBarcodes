@@ -1,18 +1,21 @@
 using Android.Media;
+using Microsoft.Extensions.Logging;
 using A = Android; //stupid but resolves namespace conflicts
 
 namespace CheapBarcodes.Scanning
 {
     public class AndroidHardwareScannerService : IHardwareScannerService, IDisposable
     {
+        private readonly ILogger<AndroidHardwareScannerService>? _logger;
         private MediaPlayer? _mediaPlayer;
         private bool _isScanning;
 
         public event Action<ScanResult> ScanReceived = delegate { };
         public bool IsScanning => _isScanning;
 
-        public AndroidHardwareScannerService()
+        public AndroidHardwareScannerService(ILogger<AndroidHardwareScannerService>? logger = null)
         {
+            _logger = logger;
             _isScanning = false;
             InitializeMediaPlayer();
         }
@@ -33,12 +36,12 @@ namespace CheapBarcodes.Scanning
                 // If still null, we'll just skip sound
                 if (_mediaPlayer == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("Could not initialize MediaPlayer - no sound will be played");
+                    _logger?.LogWarning("Could not initialize MediaPlayer - no sound will be played");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to initialize MediaPlayer: {ex.Message}");
+                _logger?.LogWarning(ex, "Failed to initialize MediaPlayer");
                 _mediaPlayer = null; // Ensure it's null so we don't try to use it
             }
         }
@@ -50,7 +53,7 @@ namespace CheapBarcodes.Scanning
 
             try
             {
-                System.Diagnostics.Debug.WriteLine($"Barcode scanned ({scan.Source}): {scan.Barcode}");
+                _logger?.LogInformation("Barcode scanned ({Source}): {Barcode}", scan.Source, scan.Barcode);
 
                 // Play sound notification (Android-specific feature)
                 PlayScanSound();
@@ -63,20 +66,20 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error processing hardware barcode: {ex.Message}");
+                _logger?.LogError(ex, "Error processing hardware barcode");
             }
         }
 
         public void StartScanning()
         {
             _isScanning = true;
-            System.Diagnostics.Debug.WriteLine("Hardware barcode scanning started");
+            _logger?.LogInformation("Hardware barcode scanning started");
         }
 
         public void StopScanning()
         {
             _isScanning = false;
-            System.Diagnostics.Debug.WriteLine("Hardware barcode scanning stopped");
+            _logger?.LogInformation("Hardware barcode scanning stopped");
         }
 
         private void PlayScanSound()
@@ -96,7 +99,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error playing scan sound: {ex.Message}");
+                _logger?.LogWarning(ex, "Error playing scan sound");
             }
         }
 
@@ -124,7 +127,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error providing haptic feedback: {ex.Message}");
+                _logger?.LogWarning(ex, "Error providing haptic feedback");
             }
         }
 
@@ -147,7 +150,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error disposing AndroidHardwareScannerService: {ex.Message}");
+                _logger?.LogWarning(ex, "Error disposing AndroidHardwareScannerService");
             }
         }
     }

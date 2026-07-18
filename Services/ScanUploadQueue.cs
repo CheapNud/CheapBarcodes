@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace CheapBarcodes.Services
@@ -14,11 +15,13 @@ namespace CheapBarcodes.Services
         private const int MaxQueuedScans = 500;
 
         private readonly ScanApiClient _scanApi;
+        private readonly ILogger<ScanUploadQueue>? _logger;
         private readonly SemaphoreSlim _flushLock = new(1, 1);
 
-        public ScanUploadQueue(ScanApiClient scanApi)
+        public ScanUploadQueue(ScanApiClient scanApi, ILogger<ScanUploadQueue>? logger = null)
         {
             _scanApi = scanApi;
+            _logger = logger;
             Connectivity.Current.ConnectivityChanged += OnConnectivityChanged;
         }
 
@@ -76,7 +79,7 @@ namespace CheapBarcodes.Services
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Queue drain stopped: {ex.Message}");
+                    _logger?.LogWarning(ex, "Queue drain stopped, {Pending} scan(s) remain", queue.Count);
                     break;
                 }
             }
@@ -107,7 +110,7 @@ namespace CheapBarcodes.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Connectivity flush failed: {ex.Message}");
+                _logger?.LogError(ex, "Connectivity-triggered flush failed");
             }
         }
 

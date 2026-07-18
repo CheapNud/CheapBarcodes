@@ -1,5 +1,6 @@
 using Android.Content;
 using Android.OS;
+using Microsoft.Extensions.Logging;
 
 namespace CheapBarcodes.Scanning
 {
@@ -8,28 +9,30 @@ namespace CheapBarcodes.Scanning
         internal const int ScanMessageId = 1001;
 
         private readonly Handler _handler;
+        private readonly ILogger? _logger;
 
-        public BarcodeReceiver(Handler handler)
+        public BarcodeReceiver(Handler handler, ILogger? logger = null)
         {
             _handler = handler;
+            _logger = logger;
         }
 
         public override void OnReceive(Context? context, Intent? intent)
         {
             if (intent?.Extras == null)
             {
-                System.Diagnostics.Debug.WriteLine("BarcodeReceiver received null intent or extras.");
+                _logger?.LogDebug("BarcodeReceiver received null intent or extras");
                 return;
             }
 
             string? barcode = intent.Extras.GetString("DATA");
             if (barcode == null)
             {
-                System.Diagnostics.Debug.WriteLine("BarcodeReceiver received null barcode.");
+                _logger?.LogDebug("BarcodeReceiver received null barcode");
                 return;
             }
 
-            System.Diagnostics.Debug.WriteLine($"BarcodeReceiver received barcode: {barcode}");
+            _logger?.LogDebug("BarcodeReceiver received barcode: {Barcode}", barcode);
 
             // Convert bundle to use the same data param; mark the transport so the
             // host can distinguish broadcast scans from serial scan-thread messages

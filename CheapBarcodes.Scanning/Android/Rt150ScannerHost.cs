@@ -3,6 +3,7 @@ using Android.Content;
 using Android.OS;
 using CN.Pda.Scan;
 using CN.Pda.Serialport;
+using Microsoft.Extensions.Logging;
 
 namespace CheapBarcodes.Scanning
 {
@@ -25,6 +26,9 @@ namespace CheapBarcodes.Scanning
         private bool _isStarted;
 
         public event Action<ScanResult>? ScanReceived;
+
+        /// <summary>Optional logger; without one the host is silent.</summary>
+        public ILogger? Logger { get; init; }
 
         public Rt150ScannerHost(Activity activity)
         {
@@ -49,11 +53,11 @@ namespace CheapBarcodes.Scanning
             {
                 if (TryInitializeSerialPortScanning())
                 {
-                    System.Diagnostics.Debug.WriteLine("SerialPort scanning initialized successfully");
+                    Logger?.LogInformation("SerialPort scanning initialized");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("SerialPort failed, using BroadcastReceiver");
+                    Logger?.LogInformation("SerialPort unavailable, using broadcast receiver only");
                 }
 
                 // Always register broadcast receivers as fallback/additional support
@@ -62,7 +66,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error starting Rt150ScannerHost: {ex.Message}");
+                Logger?.LogError(ex, "Error starting Rt150ScannerHost");
             }
         }
 
@@ -91,7 +95,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error stopping Rt150ScannerHost: {ex.Message}");
+                Logger?.LogError(ex, "Error stopping Rt150ScannerHost");
             }
 
             try
@@ -103,7 +107,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error closing scan thread: {ex.Message}");
+                Logger?.LogError(ex, "Error closing scan thread");
             }
             finally
             {
@@ -129,7 +133,7 @@ namespace CheapBarcodes.Scanning
                 // vendor thread cannot be restarted once closed
                 _scanThread = new ScanThread(_handler);
 
-                _keyReceiver = new KeyReceiver(_scanThread);
+                _keyReceiver = new KeyReceiver(_scanThread, Logger);
                 RegisterVendorReceiver(_keyReceiver, FunctionKeyAction);
 
                 _scanThread.Start();
@@ -137,7 +141,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"SerialPort initialization failed: {ex.Message}");
+                Logger?.LogWarning(ex, "SerialPort initialization failed");
                 return false;
             }
         }
@@ -146,19 +150,19 @@ namespace CheapBarcodes.Scanning
         {
             try
             {
-                _barcodeReceiver = new BarcodeReceiver(_handler);
+                _barcodeReceiver = new BarcodeReceiver(_handler, Logger);
                 RegisterVendorReceiver(_barcodeReceiver, BarcodeAction);
 
                 // If we don't have SerialPort scanning, also register key receiver
                 if (_keyReceiver == null)
                 {
-                    _keyReceiver = new KeyReceiver(null); // No scan thread available
+                    _keyReceiver = new KeyReceiver(null, Logger); // No scan thread available
                     RegisterVendorReceiver(_keyReceiver, FunctionKeyAction);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error registering broadcast receivers: {ex.Message}");
+                Logger?.LogError(ex, "Error registering broadcast receivers");
             }
         }
 
@@ -193,7 +197,7 @@ namespace CheapBarcodes.Scanning
                 string? barcode = message.Data?.GetString("data");
                 if (string.IsNullOrEmpty(barcode))
                 {
-                    System.Diagnostics.Debug.WriteLine("Received empty barcode message");
+                    Logger?.LogDebug("Received empty barcode message");
                     return;
                 }
 
@@ -201,12 +205,12 @@ namespace CheapBarcodes.Scanning
                     ? ScanSource.Broadcast
                     : ScanSource.SerialPort;
 
-                System.Diagnostics.Debug.WriteLine($"Rt150ScannerHost received barcode ({scanSource}): {barcode}");
+                Logger?.LogDebug("Rt150ScannerHost received barcode ({ScanSource}): {Barcode}", scanSource, barcode);
                 ScanReceived?.Invoke(new ScanResult(barcode, scanSource));
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error processing scan message: {ex.Message}");
+                Logger?.LogError(ex, "Error processing scan message");
             }
         }
 

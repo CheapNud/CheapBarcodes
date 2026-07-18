@@ -2,6 +2,7 @@ using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using CheapBarcodes.Scanning;
+using Microsoft.Extensions.Logging;
 
 namespace CheapBarcodes.Platforms.Android
 {
@@ -19,7 +20,11 @@ namespace CheapBarcodes.Platforms.Android
         {
             base.OnCreate(savedInstanceState);
 
-            _scannerHost = new Rt150ScannerHost(this);
+            var loggerFactory = IPlatformApplication.Current?.Services?.GetService<ILoggerFactory>();
+            _scannerHost = new Rt150ScannerHost(this)
+            {
+                Logger = loggerFactory?.CreateLogger<Rt150ScannerHost>()
+            };
             _scannerHost.ScanReceived += OnScanReceived;
         }
 

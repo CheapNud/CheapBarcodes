@@ -5,6 +5,7 @@ using CheapHelpers.Services.Communication.Barcode;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 using MudBlazor.Services;
+using Serilog;
 
 namespace CheapBarcodes
 {
@@ -19,6 +20,26 @@ namespace CheapBarcodes
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
+
+            // Structured logging: rolling local file always, Seq when configured in settings
+            var loggingOptions = LoggingOptions.Load();
+            var serilogConfig = new LoggerConfiguration()
+#if DEBUG
+                .MinimumLevel.Debug()
+#else
+                .MinimumLevel.Information()
+#endif
+                .WriteTo.File(Path.Combine(LoggingOptions.LogDirectory, "cheapbarcodes-.log"),
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 7);
+
+            if (loggingOptions.IsSeqConfigured)
+            {
+                serilogConfig = serilogConfig.WriteTo.Seq(loggingOptions.SeqUrl,
+                    apiKey: string.IsNullOrWhiteSpace(loggingOptions.SeqApiKey) ? null : loggingOptions.SeqApiKey);
+            }
+
+            builder.Logging.AddSerilog(serilogConfig.CreateLogger(), dispose: true);
 
             // Add MAUI Blazor WebView
             builder.Services.AddMauiBlazorWebView();

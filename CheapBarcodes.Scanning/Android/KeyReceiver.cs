@@ -1,18 +1,21 @@
 using Android.Content;
 using Android.Views;
 using CN.Pda.Scan;
+using Microsoft.Extensions.Logging;
 
 namespace CheapBarcodes.Scanning
 {
     internal class KeyReceiver : BroadcastReceiver
     {
         private readonly ScanThread? _scanThread;
+        private readonly ILogger? _logger;
         private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1.8);
         private DateTime _lastKeyTime = DateTime.MinValue;
 
-        public KeyReceiver(ScanThread? scanThread)
+        public KeyReceiver(ScanThread? scanThread, ILogger? logger = null)
         {
             _scanThread = scanThread;
+            _logger = logger;
         }
 
         public override void OnReceive(Context? context, Intent? intent)
@@ -26,7 +29,7 @@ namespace CheapBarcodes.Scanning
 
                 if (DateTime.Now - _lastKeyTime < _timeout)
                 {
-                    System.Diagnostics.Debug.WriteLine("Key press ignored - within timeout period");
+                    _logger?.LogDebug("Key press ignored - within timeout period");
                     return;
                 }
 
@@ -42,7 +45,7 @@ namespace CheapBarcodes.Scanning
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"KeyReceiver OnReceive exception: {ex.Message}");
+                _logger?.LogError(ex, "KeyReceiver OnReceive failed");
             }
         }
 
@@ -55,12 +58,12 @@ namespace CheapBarcodes.Scanning
                 case Keycode.F3:
                 case Keycode.F4:
                 case Keycode.F5:
-                    System.Diagnostics.Debug.WriteLine($"{keyCode} - Scan trigger");
+                    _logger?.LogDebug("Hardware key {KeyCode} - scan trigger", keyCode);
                     TriggerScan();
                     break;
 
                 default:
-                    System.Diagnostics.Debug.WriteLine($"Unhandled key code: {keyCode}");
+                    _logger?.LogDebug("Unhandled key code: {KeyCode}", keyCode);
                     break;
             }
         }
@@ -73,17 +76,17 @@ namespace CheapBarcodes.Scanning
                 {
                     // Use SerialPort scanning if available
                     _scanThread.Scan();
-                    System.Diagnostics.Debug.WriteLine("Triggered SerialPort scan");
+                    _logger?.LogDebug("Triggered SerialPort scan");
                 }
                 else
                 {
                     // If no SerialPort scanning, the vendor broadcast path delivers the barcode instead
-                    System.Diagnostics.Debug.WriteLine("No SerialPort available - hardware key pressed but no scan thread");
+                    _logger?.LogDebug("Hardware key pressed but no scan thread available");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error triggering scan: {ex.Message}");
+                _logger?.LogError(ex, "Error triggering scan");
             }
         }
     }

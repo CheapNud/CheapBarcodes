@@ -71,6 +71,31 @@
 
                 <MudDivider Class="my-2" />
 
+                <MudText Typo="Typo.subtitle1">Logging</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Logs always go to a local rolling file (7 days kept). Add a Seq server to also ship
+                    them there. Restart the app to apply changes.
+                </MudText>
+
+                <MudTextField @bind-Value="loggingOptions.SeqUrl"
+                              Label="Seq server URL (optional)"
+                              Placeholder="https://seq.example.com"
+                              Variant="Variant.Outlined" />
+
+                <MudTextField @bind-Value="loggingOptions.SeqApiKey"
+                              Label="Seq API key (optional)"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Password" />
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           OnClick="ShareLatestLog"
+                           StartIcon="Icons.Material.Filled.Description">
+                    Share latest log file
+                </MudButton>
+
+                <MudDivider Class="my-2" />
+
                 @if (pendingUploads > 0)
                 {
                     <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
@@ -116,13 +141,41 @@
 
 @code {
     private ApiUploadOptions uploadOptions = new();
+    private LoggingOptions loggingOptions = new();
     private bool isTesting;
     private int pendingUploads;
 
     protected override async Task OnInitializedAsync()
     {
         uploadOptions = await ApiUploadOptions.LoadAsync();
+        loggingOptions = LoggingOptions.Load();
         pendingUploads = UploadQueue.PendingCount;
+    }
+
+    private async Task ShareLatestLog()
+    {
+        try
+        {
+            var latestLog = Directory.Exists(LoggingOptions.LogDirectory)
+                ? Directory.GetFiles(LoggingOptions.LogDirectory, "*.log").OrderByDescending(f => f).FirstOrDefault()
+                : null;
+
+            if (latestLog == null)
+            {
+                ToastService.Add("No log file yet", Severity.Info);
+                return;
+            }
+
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = "CheapBarcodes log",
+                File = new ShareFile(latestLog)
+            });
+        }
+        catch (Exception ex)
+        {
+            ToastService.Add($"Share failed: {ex.Message}", Severity.Error);
+        }
     }
 
     private async Task RetryQueued()
@@ -145,7 +198,8 @@
     private async Task SaveSettings()
     {
         await uploadOptions.SaveAsync();
-        ToastService.Add("API settings saved", Severity.Success);
+        loggingOptions.Save();
+        ToastService.Add("Settings saved", Severity.Success);
     }
 
     private async Task TestConnection()

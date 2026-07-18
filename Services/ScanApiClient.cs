@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -11,7 +12,7 @@ namespace CheapBarcodes.Services
     /// is configured, OAuth client-credentials takes precedence over header auth,
     /// with an in-memory token cache and a single forced refresh on 401.
     /// </summary>
-    public class ScanApiClient
+    public class ScanApiClient(ILogger<ScanApiClient>? logger = null)
     {
         private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan TokenExpirySafetyMargin = TimeSpan.FromSeconds(60);
@@ -142,7 +143,7 @@ namespace CheapBarcodes.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Token acquisition failed: {ex.Message}");
+                logger?.LogError(ex, "Token acquisition failed");
                 _cachedToken = null;
                 return null;
             }
