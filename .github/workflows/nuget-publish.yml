@@ -43,6 +43,9 @@ jobs:
     - name: Restore
       run: dotnet restore CheapBarcodes.Scanning/CheapBarcodes.Scanning.csproj
 
+    - name: Run tests
+      run: dotnet test CheapBarcodes.Scanning.Tests/CheapBarcodes.Scanning.Tests.csproj --configuration ${{ env.CONFIGURATION }}
+
     - name: Pack
       run: |
         dotnet pack CheapBarcodes.Binding/CheapBarcodes.Binding.csproj --configuration ${{ env.CONFIGURATION }} --output ./nupkgs

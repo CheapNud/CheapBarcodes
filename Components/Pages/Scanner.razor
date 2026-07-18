@@ -203,6 +203,25 @@
                                     @lastScanFormat
                                 </MudChip>
                             }
+
+                            @if (lastGs1 != null)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">GS1 content:</MudText>
+                                <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap">
+                                    @foreach (var applicationIdentifier in lastGs1.ApplicationIdentifiers)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Tertiary">
+                                            (@applicationIdentifier.Key) @applicationIdentifier.Value
+                                        </MudChip>
+                                    }
+                                </MudStack>
+                            }
+                            else if (normalizedGtin != null)
+                            {
+                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Tertiary">
+                                    GTIN @normalizedGtin
+                                </MudChip>
+                            }
                         </MudStack>
                     }
                     else
@@ -329,11 +348,18 @@
         });
     }
 
+    private Gs1Barcode? lastGs1;
+    private string? normalizedGtin;
+
     private void ProcessScannedBarcode(string barcode, string format, string source)
     {
         lastScannedCode = barcode;
         lastScanFormat = format;
         lastScanTime = DateTime.Now;
+
+        // Decode GS1 element strings / plain GTINs for display
+        lastGs1 = Gs1Parser.TryParse(barcode, out var parsedGs1) ? parsedGs1 : null;
+        normalizedGtin = lastGs1 == null && Gtin.TryNormalize(barcode, out var gtin14) ? gtin14 : null;
 
         AddToHistory(barcode, format, source);
 
