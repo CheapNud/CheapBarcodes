@@ -32,6 +32,9 @@ _Nothing blocking._
 
 ## Planned
 
+- [ ] (2026-07-18) PRIORITY (next assignment): Configurable logging across library + demo [user]
+  - Library: optional ILogger (Microsoft.Extensions.Logging.Abstractions) through the hosts/services, replacing Debug.WriteLine — Release builds currently swallow all failures silently
+  - Demo app: structured logging with local on-device file sink + Seq sink (both a must); Seq server URL + API key configurable on the settings page
 - [ ] (2026-07-11) Distinct error sound — second MediaPlayer buzz for failures (no barcode found, API post failed) [audit]
 - [ ] (2026-07-11) Show app version on Home via VersionTracking.CurrentVersion [audit]
 

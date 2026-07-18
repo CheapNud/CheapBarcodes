@@ -135,6 +135,6 @@ namespace CheapBarcodes.Services
         public string Barcode { get; set; } = "";
         public string Format { get; set; } = "";
         public string Source { get; set; } = "";
-        public DateTime Timestamp { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
     }
 }

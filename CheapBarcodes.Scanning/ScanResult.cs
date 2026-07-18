@@ -9,6 +9,10 @@ namespace CheapBarcodes.Scanning
         public string Barcode { get; } = barcode;
         public ScanSource Source { get; } = source;
         public string? Format { get; } = format;
-        public DateTime Timestamp { get; } = DateTime.Now;
+
+        /// <summary>
+        /// Offset-aware so scans stay unambiguous when they cross timezones into a backend.
+        /// </summary>
+        public DateTimeOffset Timestamp { get; } = DateTimeOffset.Now;
     }
 }

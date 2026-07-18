@@ -305,7 +305,7 @@
 
     private string lastScannedCode = "";
     private string lastScanFormat = "";
-    private DateTime lastScanTime = DateTime.MinValue;
+    private DateTimeOffset lastScanTime = DateTimeOffset.MinValue;
     private List<ScanRecord> scanHistory = new();
 
     // Image scanning
@@ -354,7 +354,7 @@
     {
         lastScannedCode = barcode;
         lastScanFormat = format;
-        lastScanTime = DateTime.Now;
+        lastScanTime = DateTimeOffset.Now;
 
         // Decode GS1 element strings / plain GTINs for display
         lastGs1 = Gs1Parser.TryParse(barcode, out var parsedGs1) ? parsedGs1 : null;
@@ -369,7 +369,7 @@
         _ = PostScanToApi(barcode, format, source, lastScanTime);
     }
 
-    private async Task PostScanToApi(string barcode, string format, string source, DateTime timestamp)
+    private async Task PostScanToApi(string barcode, string format, string source, DateTimeOffset timestamp)
     {
         try
         {
@@ -405,7 +405,7 @@
             Barcode = barcode,
             Format = format,
             Source = source,
-            Timestamp = DateTime.Now
+            Timestamp = DateTimeOffset.Now
         });
 
         // Keep last 100 scans
@@ -595,6 +595,6 @@
         public string Barcode { get; set; } = "";
         public string Format { get; set; } = "";
         public string Source { get; set; } = "";
-        public DateTime Timestamp { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
     }
 }
