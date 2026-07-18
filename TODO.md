@@ -37,6 +37,10 @@ _Nothing blocking._
 
 ## Future
 
+- [ ] (2026-07-18) Native-free serial transport (rewrite scan.jar + .so in C#) — DECISION: not now, documented for the future [user]
+  - Evidence: libirdaSerialPort.so = JNI shim; libdevapi.so pokes MediaTek nodes (/dev/ttyMT%d serial, /dev/mtgpio ioctls for scanner power/trigger)
+  - Serial half is feasible today via libc P/Invoke; GPIO half needs Ghidra RE of ioctl codes + board pins — MediaTek/board-specific, fragile
+  - Trigger to revisit: long-term commitment to RT150-class hardware needing arm64; otherwise IntentScannerHost/KeyboardWedge cover modern devices natively
 - [ ] (2026-07-11) WakeLock during scanning — deferred: device display-timeout config covered this for years in production; revisit only if RT150 testing shows serial drops when the screen dims [audit]
 - [ ] (2026-07-11) Camera-based scanning mode so the app works on ordinary phones, not just RT150 (BarcodeScanning.Native.Maui or ZXing camera view) [audit]
 - [ ] (2026-07-11) Barcode format picker + QR support in the generator — service defaults to CODE_39, ZXing already encodes the rest [audit]
