@@ -32,9 +32,6 @@ _Nothing blocking._
 
 ## Planned
 
-- [ ] (2026-07-18) PRIORITY (next assignment): Configurable logging across library + demo [user]
-  - Library: optional ILogger (Microsoft.Extensions.Logging.Abstractions) through the hosts/services, replacing Debug.WriteLine — Release builds currently swallow all failures silently
-  - Demo app: structured logging with local on-device file sink + Seq sink (both a must); Seq server URL + API key configurable on the settings page
 - [ ] (2026-07-11) Distinct error sound — second MediaPlayer buzz for failures (no barcode found, API post failed) [audit]
 - [ ] (2026-07-11) Show app version on Home via VersionTracking.CurrentVersion [audit]
 
@@ -51,6 +48,8 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-18 → 2026-07-18) Configurable logging in Scanning 3.1.0 — optional ILogger through all hosts/services (Debug.WriteLine gone); demo ships Serilog with rolling on-device file + optional Seq (URL/key in settings) + share-log button (PR #13) [user]
+  - Verified end-to-end: smoke run wrote real log file to app data dir; Seq key deliberately in Preferences (sync startup, write-only telemetry credential)
 - [x] (2026-07-18 → 2026-07-18) Scanning 3.0.0: DateTimeOffset scan timestamps end-to-end + package description/tags refreshed to the full toolkit (PR #12) [user]
   - Readiness review outcome; TFM floor deliberately stays net11 preview until .NET 11 GA (aligned with CheapHelpers); thread-model doc + snupkg deferred
 - [x] (2026-07-18 → 2026-07-18) Profile-based intent scanning in Scanning 2.2.0 — multi-vendor IntentScannerProfile (multi-action, string+byte[] extras with encoding, format extra), Context instead of Activity, ScanResult.Format (PR #11) [user]
