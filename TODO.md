@@ -51,6 +51,8 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-18 → 2026-07-18) Scanning 3.0.0: DateTimeOffset scan timestamps end-to-end + package description/tags refreshed to the full toolkit (PR #12) [user]
+  - Readiness review outcome; TFM floor deliberately stays net11 preview until .NET 11 GA (aligned with CheapHelpers); thread-model doc + snupkg deferred
 - [x] (2026-07-18 → 2026-07-18) Profile-based intent scanning in Scanning 2.2.0 — multi-vendor IntentScannerProfile (multi-action, string+byte[] extras with encoding, format extra), Context instead of Activity, ScanResult.Format (PR #11) [user]
   - Rt150 + Urovo presets shipped; DataWedge documented as example (action is device-config, no honest hardcodable default)
 - [x] (2026-07-16 → 2026-07-18) GS1 parser + GTIN/EAN validation in CheapBarcodes.Scanning 2.1.0 — Gs1Parser/Gs1Barcode/Gtin, 27 xunit tests gating the publish workflow, GS1 chips on the demo scan card (PR #10) [user]
