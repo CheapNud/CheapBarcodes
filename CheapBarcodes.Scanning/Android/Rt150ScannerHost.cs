@@ -10,7 +10,7 @@ namespace CheapBarcodes.Scanning
     /// Hosts the RT150 scanner plumbing (serial-port scan thread, hardware key and
     /// barcode broadcast receivers) for an Activity. Wire it into the activity
     /// lifecycle: construct in OnCreate, Start in OnStart/OnResume, Stop in OnPause,
-    /// Dispose in OnDestroy. Subscribe to <see cref="BarcodeScanned"/> for raw scans.
+    /// Dispose in OnDestroy. Subscribe to <see cref="ScanReceived"/> for raw scans.
     /// </summary>
     public class Rt150ScannerHost : IDisposable
     {
