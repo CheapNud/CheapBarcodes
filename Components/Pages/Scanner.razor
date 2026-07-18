@@ -333,8 +333,7 @@
     {
         await InvokeAsync(() =>
         {
-            // The scanner transports carry no format information
-            ProcessScannedBarcode(scan.Barcode, "Unknown", scan.Source.ToString());
+            ProcessScannedBarcode(scan.Barcode, scan.Format ?? "Unknown", scan.Source.ToString());
         });
     }
 

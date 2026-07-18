@@ -46,15 +46,25 @@ Then consume scans anywhere via `IHardwareScannerService.ScanReceived` — each 
 
 ## Other scanner brands (broadcast intents)
 
-Most non-RT150 handhelds (Zebra DataWedge, Honeywell, budget vendors) broadcast scans as an intent with a string extra. Use `IntentScannerHost` with the device's action/extra names:
+Most non-RT150 handhelds (Zebra DataWedge, Honeywell, Urovo, budget vendors) broadcast scans as an intent. `IntentScannerHost` takes one or more `IntentScannerProfile`s - register several and one APK works on whichever device it lands on:
 
 ```csharp
-// Zebra DataWedge example - action comes from your DataWedge profile
-_scannerHost = new IntentScannerHost(this, "com.mycompany.ACTION", "com.symbol.datawedge.data_string");
+// Multi-device: whichever vendor's broadcast fires, wins
+_scannerHost = new IntentScannerHost(this,
+    IntentScannerProfile.Rt150,
+    IntentScannerProfile.Urovo,   // byte[] payload + length extra handled
+    new IntentScannerProfile      // Zebra DataWedge - action comes from your DataWedge profile
+    {
+        Actions = ["com.mycompany.ACTION"],
+        DataExtraKeys = ["com.symbol.datawedge.data_string"],
+        FormatExtraKey = "com.symbol.datawedge.label_type",
+    });
 _scannerHost.ScanReceived += scan => scannerService?.OnScan(scan);
 ```
 
-Same lifecycle wiring as `Rt150ScannerHost` (Start/Stop/Dispose).
+Profiles support string extras (tried in order), byte-array extras with a length extra and configurable encoding (Chinese-market devices often use GBK), and an optional format/symbology extra that flows into `ScanResult.Format`. Any `Context` works as the host - Activity, Application, or a foreground Service for background scanning.
+
+Same lifecycle wiring as `Rt150ScannerHost` (Start/Stop/Dispose). The single-action `(context, action, extraKey)` constructor still exists for the trivial case.
 
 ## Keyboard-wedge (HID) scanners
 

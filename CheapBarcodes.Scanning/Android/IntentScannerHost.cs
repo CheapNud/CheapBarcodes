@@ -1,4 +1,3 @@
-using Android.App;
 using Android.Content;
 using Android.OS;
 
@@ -6,15 +5,24 @@ namespace CheapBarcodes.Scanning
 {
     /// <summary>
     /// Generic broadcast-intent scanner host for the many Android handhelds that
-    /// deliver scans as a broadcast with a string extra - Zebra DataWedge,
-    /// Honeywell, and most budget vendors. Configure the action and extra key to
-    /// match the device (e.g. DataWedge profile action + "com.symbol.datawedge.data_string").
-    /// Wire into the activity lifecycle like Rt150ScannerHost: Start in
-    /// OnStart/OnResume, Stop in OnPause, Dispose in OnDestroy.
+    /// deliver scans as a broadcast - Zebra DataWedge, Honeywell, Urovo, and most
+    /// budget vendors. Register one or more <see cref="IntentScannerProfile"/>s;
+    /// whichever device's broadcast fires produces the same ScanResult stream.
+    /// Any Context works (Activity, Application, foreground Service). Wire into
+    /// the host lifecycle: Start in OnStart/OnResume, Stop in OnPause, Dispose in
+    /// OnDestroy.
     /// </summary>
-    public class IntentScannerHost(Activity activity, string barcodeAction, string barcodeExtraKey) : IDisposable
+    public class IntentScannerHost(Context context, params IntentScannerProfile[] profiles) : IDisposable
     {
         private BroadcastReceiver? _receiver;
+
+        /// <summary>
+        /// Single-device convenience: one action, one string extra.
+        /// </summary>
+        public IntentScannerHost(Context context, string barcodeAction, string barcodeExtraKey)
+            : this(context, new IntentScannerProfile { Actions = [barcodeAction], DataExtraKeys = [barcodeExtraKey] })
+        {
+        }
 
         public event Action<ScanResult>? ScanReceived;
 
@@ -22,7 +30,7 @@ namespace CheapBarcodes.Scanning
 
         public void Start()
         {
-            if (IsStarted)
+            if (IsStarted || profiles.Length == 0)
             {
                 return;
             }
@@ -31,18 +39,21 @@ namespace CheapBarcodes.Scanning
             {
                 _receiver = new IntentScanReceiver(this);
                 var filter = new IntentFilter();
-                filter.AddAction(barcodeAction);
+                foreach (var action in profiles.SelectMany(scannerProfile => scannerProfile.Actions).Distinct())
+                {
+                    filter.AddAction(action);
+                }
 
                 // API 34+ throws without an export flag on non-system broadcasts; the
                 // flags overload exists since API 26. Vendor firmware broadcasts come
                 // from another process, so they must be exported
                 if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
                 {
-                    activity.RegisterReceiver(_receiver, filter, ReceiverFlags.Exported);
+                    context.RegisterReceiver(_receiver, filter, ReceiverFlags.Exported);
                 }
                 else
                 {
-                    activity.RegisterReceiver(_receiver, filter);
+                    context.RegisterReceiver(_receiver, filter);
                 }
 
                 IsStarted = true;
@@ -59,7 +70,7 @@ namespace CheapBarcodes.Scanning
             {
                 if (_receiver != null)
                 {
-                    activity.UnregisterReceiver(_receiver);
+                    context.UnregisterReceiver(_receiver);
                     _receiver.Dispose();
                     _receiver = null;
                 }
@@ -81,14 +92,62 @@ namespace CheapBarcodes.Scanning
 
         private void HandleIntent(Intent? intent)
         {
-            var barcode = intent?.GetStringExtra(barcodeExtraKey);
-            if (string.IsNullOrEmpty(barcode))
+            if (intent?.Action == null)
             {
                 return;
             }
 
-            System.Diagnostics.Debug.WriteLine($"IntentScannerHost received barcode: {barcode}");
-            ScanReceived?.Invoke(new ScanResult(barcode, ScanSource.Broadcast));
+            foreach (var scannerProfile in profiles)
+            {
+                if (!scannerProfile.Actions.Contains(intent.Action))
+                {
+                    continue;
+                }
+
+                var barcode = ExtractBarcode(intent, scannerProfile);
+                if (string.IsNullOrEmpty(barcode))
+                {
+                    continue;
+                }
+
+                string? barcodeFormat = scannerProfile.FormatExtraKey != null
+                    ? intent.GetStringExtra(scannerProfile.FormatExtraKey)
+                    : null;
+
+                System.Diagnostics.Debug.WriteLine($"IntentScannerHost received barcode ({intent.Action}): {barcode}");
+                ScanReceived?.Invoke(new ScanResult(barcode, ScanSource.Broadcast, barcodeFormat));
+                return;
+            }
+        }
+
+        private static string? ExtractBarcode(Intent intent, IntentScannerProfile scannerProfile)
+        {
+            foreach (var extraKey in scannerProfile.DataExtraKeys)
+            {
+                var stringValue = intent.GetStringExtra(extraKey);
+                if (!string.IsNullOrEmpty(stringValue))
+                {
+                    return stringValue;
+                }
+            }
+
+            foreach (var extraKey in scannerProfile.ByteArrayExtraKeys)
+            {
+                var byteValue = intent.GetByteArrayExtra(extraKey);
+                if (byteValue is { Length: > 0 })
+                {
+                    int length = scannerProfile.LengthExtraKey != null
+                        ? Math.Clamp(intent.GetIntExtra(scannerProfile.LengthExtraKey, byteValue.Length), 0, byteValue.Length)
+                        : byteValue.Length;
+
+                    if (length > 0)
+                    {
+                        return scannerProfile.DataEncoding.GetString(byteValue, 0, length);
+                    }
+                }
+            }
+
+            return null;
         }
 
         private class IntentScanReceiver : BroadcastReceiver
@@ -100,7 +159,7 @@ namespace CheapBarcodes.Scanning
                 _host = host;
             }
 
-            public override void OnReceive(Context? context, Intent? intent)
+            public override void OnReceive(Context? receiverContext, Intent? intent)
             {
                 _host.HandleIntent(intent);
             }
