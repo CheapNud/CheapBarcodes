@@ -32,11 +32,21 @@ namespace CheapBarcodes.Scanning
 
         public bool IsStarted { get; private set; }
 
-        public void Start()
+        /// <summary>
+        /// Registers the receiver. Returns true when scans can arrive; false when
+        /// startup failed or no profiles were supplied (details go to the logger).
+        /// </summary>
+        public bool Start()
         {
-            if (IsStarted || profiles.Length == 0)
+            if (IsStarted)
             {
-                return;
+                return true;
+            }
+
+            if (profiles.Length == 0)
+            {
+                Logger?.LogWarning("IntentScannerHost has no profiles - no scans can arrive");
+                return false;
             }
 
             try
@@ -66,6 +76,8 @@ namespace CheapBarcodes.Scanning
             {
                 Logger?.LogError(ex, "Error starting IntentScannerHost");
             }
+
+            return IsStarted;
         }
 
         public void Stop()

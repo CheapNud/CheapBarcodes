@@ -39,14 +39,23 @@ namespace CheapBarcodes.Scanning
         public bool IsStarted => _isStarted;
 
         /// <summary>
-        /// Initializes serial-port scanning (with broadcast fallback) and registers receivers.
-        /// Safe to call repeatedly; no-ops while already started.
+        /// True when the serial-port scan thread is running; false means the host is
+        /// in broadcast-only fallback mode (expected on non-RT150 devices).
         /// </summary>
-        public void Start()
+        public bool IsSerialPortActive { get; private set; }
+
+        /// <summary>
+        /// Initializes serial-port scanning (with broadcast fallback) and registers
+        /// receivers. Safe to call repeatedly. Returns true when receivers are
+        /// registered and scans can arrive; false when startup failed (details go to
+        /// the logger). Serial-port failure alone does not fail startup - check
+        /// <see cref="IsSerialPortActive"/> for the degraded broadcast-only mode.
+        /// </summary>
+        public bool Start()
         {
             if (_isStarted)
             {
-                return;
+                return true;
             }
 
             try
@@ -67,7 +76,12 @@ namespace CheapBarcodes.Scanning
             catch (Exception ex)
             {
                 Logger?.LogError(ex, "Error starting Rt150ScannerHost");
+
+                // Unwind partial registration so a later Start() retries from clean state
+                Stop();
             }
+
+            return _isStarted;
         }
 
         /// <summary>
@@ -112,6 +126,7 @@ namespace CheapBarcodes.Scanning
             finally
             {
                 _isStarted = false;
+                IsSerialPortActive = false;
             }
         }
 
@@ -137,32 +152,28 @@ namespace CheapBarcodes.Scanning
                 RegisterVendorReceiver(_keyReceiver, FunctionKeyAction);
 
                 _scanThread.Start();
+                IsSerialPortActive = true;
                 return true;
             }
             catch (Exception ex)
             {
                 Logger?.LogWarning(ex, "SerialPort initialization failed");
+                IsSerialPortActive = false;
                 return false;
             }
         }
 
+        // Failures propagate to Start() so IsStarted never claims a host with no receivers
         private void RegisterBroadcastReceivers()
         {
-            try
-            {
-                _barcodeReceiver = new BarcodeReceiver(_handler, Logger);
-                RegisterVendorReceiver(_barcodeReceiver, BarcodeAction);
+            _barcodeReceiver = new BarcodeReceiver(_handler, Logger);
+            RegisterVendorReceiver(_barcodeReceiver, BarcodeAction);
 
-                // If we don't have SerialPort scanning, also register key receiver
-                if (_keyReceiver == null)
-                {
-                    _keyReceiver = new KeyReceiver(null, Logger); // No scan thread available
-                    RegisterVendorReceiver(_keyReceiver, FunctionKeyAction);
-                }
-            }
-            catch (Exception ex)
+            // If we don't have SerialPort scanning, also register key receiver
+            if (_keyReceiver == null)
             {
-                Logger?.LogError(ex, "Error registering broadcast receivers");
+                _keyReceiver = new KeyReceiver(null, Logger); // No scan thread available
+                RegisterVendorReceiver(_keyReceiver, FunctionKeyAction);
             }
         }
 
