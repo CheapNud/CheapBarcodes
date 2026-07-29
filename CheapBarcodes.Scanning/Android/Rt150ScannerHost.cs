@@ -76,6 +76,9 @@ namespace CheapBarcodes.Scanning
             catch (Exception ex)
             {
                 Logger?.LogError(ex, "Error starting Rt150ScannerHost");
+
+                // Unwind partial registration so a later Start() retries from clean state
+                Stop();
             }
 
             return _isStarted;
