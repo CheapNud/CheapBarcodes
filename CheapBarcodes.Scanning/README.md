@@ -36,7 +36,7 @@ protected override void OnCreate(Bundle savedInstanceState)
     };
 }
 
-protected override void OnStart() { base.OnStart(); _scannerHost.Start(); }
+protected override void OnStart() { base.OnStart(); var scannerReady = _scannerHost.Start(); }
 protected override void OnResume() { base.OnResume(); _scannerHost.Start(); }
 protected override void OnPause() { UnhookIfNeeded(); _scannerHost.Stop(); base.OnPause(); }
 protected override void OnDestroy() { _scannerHost.Dispose(); base.OnDestroy(); }
@@ -64,7 +64,9 @@ _scannerHost.ScanReceived += scan => scannerService?.OnScan(scan);
 
 Profiles support string extras (tried in order), byte-array extras with a length extra and configurable encoding (Chinese-market devices often use GBK), and an optional format/symbology extra that flows into `ScanResult.Format`. Any `Context` works as the host - Activity, Application, or a foreground Service for background scanning.
 
-Same lifecycle wiring as `Rt150ScannerHost` (Start/Stop/Dispose). The single-action `(context, action, extraKey)` constructor still exists for the trivial case.
+Same lifecycle wiring as `Rt150ScannerHost` (Start/Stop/Dispose).
+
+`Start()` returns `false` when startup failed (details on the logger), so a frontend can surface "scanner unavailable" instead of silently receiving nothing. On the RT150 host, `IsSerialPortActive` distinguishes full serial mode from broadcast-only fallback. The single-action `(context, action, extraKey)` constructor still exists for the trivial case.
 
 ## Keyboard-wedge (HID) scanners
 
