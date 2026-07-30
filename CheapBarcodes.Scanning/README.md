@@ -46,21 +46,47 @@ Then consume scans anywhere via `IHardwareScannerService.ScanReceived` — each 
 
 ## Other scanner brands (broadcast intents)
 
-Most non-RT150 handhelds (Zebra DataWedge, Honeywell, Urovo, budget vendors) broadcast scans as an intent. `IntentScannerHost` takes one or more `IntentScannerProfile`s - register several and one APK works on whichever device it lands on:
+Most non-RT150 handhelds broadcast scans as an intent. `IntentScannerHost` takes one or more `IntentScannerProfile`s - register several (or `IntentScannerProfile.AllKnown`) and one APK works on whichever device it lands on:
 
 ```csharp
-// Multi-device: whichever vendor's broadcast fires, wins
-_scannerHost = new IntentScannerHost(this,
-    IntentScannerProfile.Rt150,
-    IntentScannerProfile.Urovo,   // byte[] payload + length extra handled
-    new IntentScannerProfile      // Zebra DataWedge - action comes from your DataWedge profile
-    {
-        Actions = ["com.mycompany.ACTION"],
-        DataExtraKeys = ["com.symbol.datawedge.data_string"],
-        FormatExtraKey = "com.symbol.datawedge.label_type",
-    });
+// Whichever vendor's broadcast fires, wins
+_scannerHost = new IntentScannerHost(this, IntentScannerProfile.AllKnown);
 _scannerHost.ScanReceived += scan => scannerService?.OnScan(scan);
 ```
+
+Built-in presets and their evidence level:
+
+| Preset | Action (default) | Source |
+|---|---|---|
+| `Rt150` | `com.android.serial.BARCODEPORT_RECEIVEDDATA_ACTION` | Official (WEROCK SDK docs; spans the generic Chinese PDA family) |
+| `Datalogic` | `com.datalogic.decodewedge.decode_action` | Official SDK docs - intent wedge is disabled by default on device |
+| `CipherLab` | `com.cipherlab.barcodebaseapi.PASS_DATA_2_APP` | Official KB - Decoder_Data tried as both String and byte[] |
+| `Unitech` | `unitech.scanservice.data` | Official programming manual - requires scan2key=false |
+| `Urovo` | `android.intent.ACTION_DECODE_DATA` | Official docs - byte extra tried as both `barcode` and legacy `barocode`; device must be in intent output mode |
+| `Sunmi` | `com.sunmi.scanner.ACTION_DATA_CODE_RECEIVED` | Vendor-documented defaults |
+| `Newland` | `nlscan.action.SCANNER_RESULT` | Community-reported - confirm on device |
+| `IData` | `android.intent.action.SCANRESULT` | Community-reported (pre-2024) - confirm on device |
+
+**Zebra DataWedge and Honeywell have no preset on purpose**: their result action is app-defined (you pick it when configuring the DataWedge profile / Honeywell intent output), so construct the profile with your own action:
+
+```csharp
+new IntentScannerProfile   // Zebra DataWedge
+{
+    Actions = ["com.mycompany.ACTION"],   // whatever you set in the DataWedge profile
+    DataExtraKeys = ["com.symbol.datawedge.data_string"],
+    FormatExtraKey = "com.symbol.datawedge.label_type",
+}
+
+new IntentScannerProfile   // Honeywell intent output
+{
+    Actions = ["com.mycompany.ACTION"],   // your DPR_DATA_INTENT_ACTION value
+    DataExtraKeys = ["data"],
+    ByteArrayExtraKeys = ["dataBytes"],
+    FormatExtraKey = "codeID",
+}
+```
+
+**Point Mobile cannot be supported via profiles** - its broadcast carries no data; the vendor SDK must be called after the notification.
 
 Profiles support string extras (tried in order), byte-array extras with a length extra and configurable encoding (Chinese-market devices often use GBK), and an optional format/symbology extra that flows into `ScanResult.Format`. Any `Context` works as the host - Activity, Application, or a foreground Service for background scanning.
 
@@ -115,6 +141,18 @@ if (Gtin.TryNormalize(scan.Barcode, out var gtin14))
 ```
 
 FNC1/GS separators (ASCII 29) and symbology prefixes (`]C1`, `]d2`, ...) are handled. The AI table covers the common warehouse set; codes with unknown AIs fail parsing rather than guessing. A scan that fails both helpers is a custom/internal code.
+
+## Camera scanning
+
+Live camera scanning is intentionally not wrapped - plug any camera library into the same pipeline as an `External` scan source. As of mid-2026 the recommended MAUI option is [BarcodeScanning.Native.Maui](https://github.com/afriscic/BarcodeScanning.Native.Maui) (ML Kit / Apple Vision / zxing-cpp, actively maintained):
+
+```csharp
+cameraView.OnDetectionFinished += results =>
+{
+    foreach (var detected in results)
+        scannerService?.OnScan(new ScanResult(detected.RawValue, ScanSource.External, detected.BarcodeFormat.ToString()));
+};
+```
 
 ## Logging
 
