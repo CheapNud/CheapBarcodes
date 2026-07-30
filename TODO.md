@@ -1,6 +1,6 @@
 <!--
   TODO.md — CheapBarcodes project work tracker
-  Last updated: 2026-07-29
+  Last updated: 2026-07-30
 
   RULES FOR AI AGENTS:
   - Update the "Last updated" date above whenever you modify this file
@@ -48,6 +48,8 @@ _Nothing blocking._
 
 ## Done
 
+- [x] (2026-07-30 → 2026-07-30) Vendor intent presets in Scanning 3.3.0 — researched profiles for Datalogic/CipherLab/Unitech/Sunmi/Newland/iData + widened Urovo, AllKnown bundle, evidence-tiered docs; Zebra/Honeywell documented as app-defined patterns, Point Mobile as SDK-only (PR #15) [user]
+  - Camera recommendation documented: BarcodeScanning.Native.Maui via ScanSource.External; Chainway remains the only unfilled vendor
 - [x] (2026-07-29 → 2026-07-29) Scanning 3.2.0: Start() returns startup result on both hosts + honest IsStarted (inner registration catch removed, partial state unwound on failure) + IsSerialPortActive for broadcast-only fallback (PR #14) [bug]
   - Externally reported: void Start() swallowed failures into an optional logger; investigation also found IsStarted could report true with zero receivers registered
 - [x] (2026-07-18 → 2026-07-18) Configurable logging in Scanning 3.1.0 — optional ILogger through all hosts/services (Debug.WriteLine gone); demo ships Serilog with rolling on-device file + optional Seq (URL/key in settings) + share-log button (PR #13) [user]
