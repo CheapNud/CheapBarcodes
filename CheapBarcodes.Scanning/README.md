@@ -96,7 +96,7 @@ Same lifecycle wiring as `Rt150ScannerHost` (Start/Stop/Dispose).
 
 ## Keyboard-wedge (HID) scanners
 
-Most budget USB and Bluetooth scanners present as keyboards. Register a `KeyboardWedgeDetector`, route its scans into the same pipeline, and feed it key events:
+Most budget USB and Bluetooth scanners present as keyboards - including the whole corded-scanner family (Mindeo MD-series like the MD6600, Honeywell Voyager, Zebra corded units) in their default USB-HID mode. Program the scanner's suffix to Enter or Tab. Register a `KeyboardWedgeDetector`, route its scans into the same pipeline, and feed it key events:
 
 ```csharp
 builder.Services.AddSingleton(sp =>
