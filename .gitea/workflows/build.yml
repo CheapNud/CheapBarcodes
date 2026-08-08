@@ -1,0 +1,52 @@
+name: Build & Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - master
+
+env:
+  DOTNET_VERSION: '11.0.x'
+  DOTNET_QUALITY: 'preview'
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-quality: ${{ env.DOTNET_QUALITY }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/*.csproj') }}
+
+      - name: Install Android workload
+        run: dotnet workload install android
+
+      - name: Restore
+        run: dotnet restore CheapBarcodes.Scanning/CheapBarcodes.Scanning.csproj
+
+      - name: Build
+        run: dotnet build CheapBarcodes.Scanning/CheapBarcodes.Scanning.csproj --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test CheapBarcodes.Scanning.Tests/CheapBarcodes.Scanning.Tests.csproj --configuration Release --verbosity normal
