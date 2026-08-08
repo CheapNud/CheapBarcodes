@@ -13,6 +13,8 @@ jobs:
   analyze:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
+    # Forgejo also reads .github/workflows - these jobs are GitHub-only
+    if: ${{ github.server_url == 'https://github.com' }}
     permissions:
       actions: read
       contents: read

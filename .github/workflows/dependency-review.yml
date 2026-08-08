@@ -12,6 +12,8 @@ jobs:
   dependency-review:
     name: Review Dependencies
     runs-on: ubuntu-latest
+    # Forgejo also reads .github/workflows - these jobs are GitHub-only
+    if: ${{ github.server_url == 'https://github.com' }}
 
     steps:
     - name: Checkout code

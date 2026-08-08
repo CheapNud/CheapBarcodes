@@ -18,6 +18,8 @@ jobs:
   pack:
     name: Pack Packages
     runs-on: ubuntu-latest
+    # Forgejo also reads .github/workflows - these jobs are GitHub-only
+    if: ${{ github.server_url == 'https://github.com' }}
 
     steps:
     - name: Checkout code
@@ -62,6 +64,8 @@ jobs:
     name: Publish to NuGet.org
     needs: pack
     runs-on: ubuntu-latest
+    # Forgejo also reads .github/workflows - these jobs are GitHub-only
+    if: ${{ github.server_url == 'https://github.com' }}
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:

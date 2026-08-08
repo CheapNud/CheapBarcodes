@@ -20,6 +20,8 @@ jobs:
   claude-review:
     name: AI Code Review
     runs-on: ubuntu-latest
+    # Forgejo also reads .github/workflows - these jobs are GitHub-only
+    if: ${{ github.server_url == 'https://github.com' }}
     timeout-minutes: 10
 
     steps:
