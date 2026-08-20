@@ -1,0 +1,57 @@
+name: Publish NuGet
+
+# Release mechanism: push a v*.*.* tag. GitHub is a sync mirror; publishing runs here.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  DOTNET_VERSION: '11.0.x'
+  DOTNET_QUALITY: 'preview'
+  CONFIGURATION: Release
+  NUGET_SOURCE: https://api.nuget.org/v3/index.json
+
+jobs:
+  publish:
+    name: Build, Pack and Publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-quality: ${{ env.DOTNET_QUALITY }}
+
+      # The Binding package targets Android — needs Java and the android workload
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Android workload
+        run: dotnet workload install android
+
+      - name: Restore
+        run: dotnet restore CheapBarcodes.Scanning/CheapBarcodes.Scanning.csproj
+
+      - name: Run tests
+        run: dotnet test CheapBarcodes.Scanning.Tests/CheapBarcodes.Scanning.Tests.csproj --configuration ${{ env.CONFIGURATION }}
+
+      - name: Pack
+        run: |
+          dotnet pack CheapBarcodes.Binding/CheapBarcodes.Binding.csproj --configuration ${{ env.CONFIGURATION }} --output ./nupkgs
+          dotnet pack CheapBarcodes.Scanning/CheapBarcodes.Scanning.csproj --configuration ${{ env.CONFIGURATION }} --output ./nupkgs
+
+      - name: Publish packages to NuGet.org
+        run: |
+          for pkg in ./nupkgs/*.nupkg; do
+            echo "Publishing $pkg"
+            dotnet nuget push "$pkg" --api-key "$NUGET_API_KEY" --source "$NUGET_SOURCE" --skip-duplicate
+          done
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
