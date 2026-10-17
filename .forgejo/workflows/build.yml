@@ -7,10 +7,6 @@ on:
     branches:
       - master
 
-env:
-  DOTNET_VERSION: '11.0.x'
-  DOTNET_QUALITY: 'preview'
-
 jobs:
   build:
     name: Build and Test
@@ -21,23 +17,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-          dotnet-quality: ${{ env.DOTNET_QUALITY }}
-
-      - name: Cache NuGet
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ hashFiles('**/*.csproj') }}
-
-      # Needed so restore can evaluate the library's android TFM; the android
-      # flavor is never BUILT here (no Android SDK on this runner) - building
-      # the test project compiles only the net11.0 flavor of the library
-      - name: Install Android workload
-        run: dotnet workload install android
-
+      # No setup-dotnet and no workload install: the ubuntu-latest label maps to
+      # the ci-dotnet image, which carries the .NET 11 SDK plus the maui-android
+      # workload. Installing the workload per run broke twice when a fresh SDK
+      # referenced android packs that nuget.org did not have yet.
+      # No actions/cache: the runner mounts a persistent nuget-ci-cache volume
+      # into every job, and the cache action only ever timed out here anyway.
+      # The android flavor of the library is never BUILT here - building the
+      # test project compiles only the net11.0 flavor.
       - name: Test
         run: dotnet test CheapBarcodes.Scanning.Tests/CheapBarcodes.Scanning.Tests.csproj --configuration Release --verbosity normal

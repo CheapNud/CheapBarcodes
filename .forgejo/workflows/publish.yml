@@ -1,6 +1,9 @@
 name: Publish NuGet
 
 # Release mechanism: push a v*.*.* tag. GitHub is a sync mirror; publishing runs here.
+# No setup-dotnet, setup-java or workload install: the ubuntu-latest runner image
+# carries the .NET 11 SDK, the maui-android workload, JDK 21 and the Android SDK,
+# which is all the Binding package needs to pack.
 
 on:
   push:
@@ -8,8 +11,6 @@ on:
       - 'v*.*.*'
 
 env:
-  DOTNET_VERSION: '11.0.x'
-  DOTNET_QUALITY: 'preview'
   CONFIGURATION: Release
   NUGET_SOURCE: https://api.nuget.org/v3/index.json
 
@@ -21,20 +22,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-          dotnet-quality: ${{ env.DOTNET_QUALITY }}
-
-      # The Binding package targets Android — needs Java and the android workload
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Install Android workload
-        run: dotnet workload install android
 
       - name: Restore
         run: dotnet restore CheapBarcodes.Scanning/CheapBarcodes.Scanning.csproj
