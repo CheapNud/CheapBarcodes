@@ -1,7 +1,6 @@
 ﻿using CheapBarcodes.Scanning;
 using CheapBarcodes.Services;
-using CheapHelpers.Services;
-using CheapHelpers.Services.Communication.Barcode;
+using CheapHelpers.Barcodes;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 using MudBlazor.Services;
@@ -58,7 +57,7 @@ namespace CheapBarcodes
             });
 
             // Add barcode service dependencies
-            builder.Services.AddSingleton<IBarcodeService, BarcodeService>();
+            builder.Services.AddCheapBarcodes();
 
             // Hardware scanner (CheapBarcodes.Scanning): real implementation on Android, no-op elsewhere
 #if ANDROID

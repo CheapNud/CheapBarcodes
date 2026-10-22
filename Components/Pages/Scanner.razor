@@ -3,7 +3,6 @@
 @using System.Text.Json
 @using CheapBarcodes.Scanning
 @using CheapBarcodes.Services
-@using CheapHelpers.Services.Communication.Barcode
 @inject IBarcodeService BarcodeService
 @inject IHardwareScannerService HardwareScannerService
 @inject KeyboardWedgeDetector WedgeDetector
@@ -513,8 +512,15 @@
                 await imageStream.CopyToAsync(imageBuffer);
                 var buffer = imageBuffer.ToArray();
 
+                var decoded = await ImagePixels.DecodeAsync(buffer);
+                if (decoded is not { } image)
+                {
+                    ToastService.Add("Could not read image", Severity.Warning);
+                    return;
+                }
+
                 // Process the image using your existing BarcodeService
-                var scanResult = await BarcodeService.ReadBarcodeAsync(buffer);
+                var scanResult = BarcodeService.ReadBarcode(image.Pixels, image.Width, image.Height, image.Format);
 
                 if (scanResult.HasValue && !string.IsNullOrEmpty(scanResult.Value.Text))
                 {
@@ -538,12 +544,12 @@
         }
     }
 
-    private async Task GenerateBarcode()
+    private void GenerateBarcode()
     {
         try
         {
-            var barcodeBytes = await BarcodeService.GetBarcodeAsync(textToEncode, barcodeHeight, barcodeWidth);
-            generatedBarcodeImage = $"data:image/jpeg;base64,{Convert.ToBase64String(barcodeBytes)}";
+            var barcodeBytes = BarcodeService.GetBarcode(textToEncode, barcodeHeight, barcodeWidth);
+            generatedBarcodeImage = $"data:image/png;base64,{Convert.ToBase64String(barcodeBytes)}";
             ToastService.Add("Barcode generated successfully", Severity.Success);
         }
         catch (Exception ex)

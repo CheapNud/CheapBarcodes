@@ -52,7 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CheapHelpers.Services" Version="3.6.0" />
+    <PackageReference Include="CheapHelpers.Barcodes" Version="4.0.0" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="10.0.80" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />

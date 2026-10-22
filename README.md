@@ -23,7 +23,7 @@ The app doubles as the demo/test frontend for **CheapBarcodes.Scanning**, the re
 ### Barcode Generation
 - **Text-to-Barcode**: Generate barcodes from any text input
 - **Customizable Dimensions**: Width (50-500px) and height (20-200px) configuration
-- **Format**: Outputs JPEG images as base64 data URIs for inline display
+- **Format**: Outputs PNG images as base64 data URIs for inline display
 - **Live Preview**: Instant barcode preview after generation
 
 ### Scan History & Management
@@ -48,7 +48,7 @@ The app doubles as the demo/test frontend for **CheapBarcodes.Scanning**, the re
 | MAUI | 10.0.80 | Cross-platform app framework |
 | Blazor WebView | 10.0.80 | Hybrid web UI rendering |
 | MudBlazor | 9.7.0 | Material Design component library |
-| CheapHelpers.Services | 3.6.0 | Barcode services (generation, image scanning) |
+| CheapHelpers.Barcodes | 4.0.0 | Barcode services (generation, image scanning) |
 
 ### Android Requirements
 - **Minimum SDK**: API 24 (Android 7.0)
@@ -226,15 +226,15 @@ public interface IHardwareScannerService
 **Properties:**
 - `IsScanning`: Current scanning state
 
-### IBarcodeService (CheapHelpers.Services)
+### IBarcodeService (CheapHelpers.Barcodes)
 Interface for barcode generation and image scanning.
 
 ```csharp
-// Generate barcode from text (async)
-Task<byte[]> GetBarcodeAsync(string input, int height = 30, int width = 100, BarcodeFormat format = BarcodeFormat.CODE_39, CancellationToken cancellationToken = default)
+// Generate barcode from text (PNG)
+byte[] GetBarcode(string input, int height = 30, int width = 100, BarcodeFormat format = BarcodeFormat.CODE_39)
 
-// Scan barcode from image (async)
-Task<(string Text, string Format)?> ReadBarcodeAsync(byte[] imageBytes, CancellationToken cancellationToken = default)
+// Scan barcode from raw pixels
+(string Text, string Format)? ReadBarcode(ReadOnlySpan<byte> pixels, int width, int height, RGBLuminanceSource.BitmapFormat format)
 
 // Event when barcode is detected
 event Func<string, Task> BarcodeScanned
@@ -245,7 +245,8 @@ event Func<string, Task> BarcodeScanned
 var buffer = new byte[file.Size];
 await file.OpenReadStream().ReadAsync(buffer);
 
-var scanResult = await BarcodeService.ReadBarcodeAsync(buffer);
+var decoded = await ImagePixels.DecodeAsync(buffer); // platform decoder, see Services/ImagePixels.cs
+var scanResult = BarcodeService.ReadBarcode(decoded.Value.Pixels, decoded.Value.Width, decoded.Value.Height, decoded.Value.Format);
 if (scanResult.HasValue && !string.IsNullOrEmpty(scanResult.Value.Text))
 {
     ProcessScannedBarcode(scanResult.Value.Text, scanResult.Value.Format, "Image");
